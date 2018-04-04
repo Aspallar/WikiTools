@@ -54,6 +54,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="DateTimeOffsetExtensions.cs" />
     <Compile Include="InvalidVote.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />

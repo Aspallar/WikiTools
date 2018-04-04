@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Xml;
 using CommandLine;
-using System.Globalization;
 
 namespace DeckRatings
 {
@@ -91,8 +90,7 @@ namespace DeckRatings
 
             DateTimeOffset startOfToday = new DateTimeOffset(DateTime.UtcNow.Date, new TimeSpan(0));
             DateTimeOffset wantedStart = startOfToday.AddDays(-days);
-            string timeString = wantedStart.ToString("s", CultureInfo.InvariantCulture) + "Z";
-            return timeString;
+            return wantedStart.ToWikiTimestamp();
         }
 
         private static void WriteResults(Options options, List<Vote> votes, List<InvalidVote> invalidVotes)
