@@ -5,9 +5,9 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("DeckRatings")]
-[assembly: AssemblyDescription("Fetch ratings history in CSV format.")]
-[assembly: AssemblyProduct("DeckRatings")]
+[assembly: AssemblyTitle("RatingPurge")]
+[assembly: AssemblyDescription("Purges a given users votes")]
+[assembly: AssemblyProduct("RatingPurge")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 
 // to COM components.  If you need to access a type in this assembly from 
@@ -15,4 +15,5 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("65b6aea8-6114-4c1f-8a22-f70076ba2e16")]
+[assembly: Guid("8f008c75-390b-4642-b33f-51b6b128dfc0")]
+

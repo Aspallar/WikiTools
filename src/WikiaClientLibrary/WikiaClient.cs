@@ -190,12 +190,21 @@ namespace WikiaClientLibrary
         {
             NameValueCollection data = new NameValueCollection();
             data.Add("title", title);
+
             if (pageInfo.TimeStamp != null)
                 data.Add("basetimestamp", pageInfo.TimeStamp);
+
+            if (pageInfo.StartTimeStamp != null)
+                data.Add("startimestamp", pageInfo.StartTimeStamp);
+
             if (!string.IsNullOrEmpty(summary))
                 data.Add("summary", summary);
+
             data.Add("text", pageInfo.Contents);
             data.Add("token", pageInfo.EditToken);
+            data.Add("watchlist", "unwatch");
+            data.Add("minor", "yes");
+
             return data;
         }
 
