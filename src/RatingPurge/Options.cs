@@ -7,7 +7,7 @@ namespace RatingPurge
     internal class Options
     {
         [Value(0, HelpText = "Username to purge from votes", Required = true)]
-        public string UserName { get; set; }
+        public string PurgeUserName { get; set; }
 
         [Option(Default = "http://magicarena.wikia.com", HelpText = "Wikia site.")]
         public string Site { get; set; }
@@ -21,9 +21,12 @@ namespace RatingPurge
         [Option(HelpText = "Password (you will be prompted for this if ommited)")]
         public string Password { get; set; }
 
-        [Option(Default = -1, HelpText = "Number of days to go back.")]
+        [Option(Default = -1, HelpText = "Number of days to go back (defaults to all vote history).")]
         public int Days { get; set; }
 
+        [Option(Default = -1, HelpText = "Number of votes to undo. (defaults to all votes)")]
+        public int Count { get; set; }
+        
         [Usage]
         public static IEnumerable<Example> Examples
         {
@@ -33,16 +36,24 @@ namespace RatingPurge
                     "Example 1 (purge votes by 101.82.34.5)",
                     new Options
                     {
-                        UserName = "101.82.34.5"
+                        PurgeUserName = "101.82.34.5"
                     }
                 );
                 yield return new Example(
-                    "Example 2 (purge votes by HolyCrap WOTF)",
+                    "Example 2 (purge votes by HolyCrap WOTF, with credentials supplied)",
                     new Options
                     {
-                        UserName = "HolyCrap WOTF",
+                        PurgeUserName = "HolyCrap WOTF",
                         User = "Aspallar",
                         Password = "mypassword"
+                    }
+                );
+                yield return new Example(
+                    "Example 3 (purge last 3 votes by Aspallar)",
+                    new Options
+                    {
+                        PurgeUserName = "Aspallar",
+                        Count = 3
                     }
                 );
             }

@@ -2,12 +2,11 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using WikiaClientLibrary;
 
@@ -34,63 +33,105 @@ namespace RatingPurge
                     WriteError("That is an invalid logon.");
                     return;
                 }
-                try
-                {
-                    var ratingsPage = new RatingPage(client, options.RatingsPage);
-                    ratingsPage.Open();
-                    int purgeCount = PurgeUsersVotes(options, ratingsPage.Votes, options.UserName);
-                    if (purgeCount > 0)
-                        ratingsPage.Save($"Purged ratings by [{options.UserName}]");
-                    else
-                        Console.WriteLine($"No votes found for user {options.UserName}");
-                }
-                catch (WikiaEditConflictException)
-                {
-                    WriteError("The ratings page was edited during purge. Purge aborted.");
-                }
-                catch (WikiaEditException ex)
-                {
-                    WriteError("The purge was aborted due to wiki edit error: " + ex.Message);
-                }
-                catch (WikiaUnknownResponseException)
-                {
-                    WriteError("Something went wrong. The wiki sent an unknown respose to the edit request. Please check the ratings page on the wiki.");
-                }
+                Purge(options, client);
             }
         }
 
-        private static int PurgeUsersVotes(Options options, List<VoteTotal> voteTotals, string userName)
+        private static void Purge(Options options, WikiaClient client)
         {
-            var ratings = new XmlDocument();
-            string rvstartid = null;
+            try
+            {
+                var ratingsPage = new RatingPage(client, options.RatingsPage);
+                ratingsPage.Open();
+                int purgeCount = PurgeUsersVotes(options, ratingsPage.Votes);
+                if (purgeCount > 0)
+                    SaveRatings(options, ratingsPage);
+                else
+                    Console.WriteLine($"No votes found for user {options.PurgeUserName}");
+            }
+            catch (WikiaEditConflictException)
+            {
+                WriteError("The ratings page was edited during purge. Purge aborted.");
+            }
+            catch (WikiaEditException ex)
+            {
+                WriteError("The purge was aborted due to wiki edit error: " + ex.Message);
+            }
+            catch (WikiaUnknownResponseException)
+            {
+                WriteError("Something went wrong. The wiki sent an unknown respose to the edit request. Please check the ratings page on the wiki.");
+                Pause("Press any key to review ratings page");
+                Process.Start(options.Site + "/wiki/" + options.RatingsPage);
+            }
+            catch (BadVoteTotalException ex)
+            {
+                WriteError(ex.Message);
+            }
+            catch (JsonException ex)
+            {
+                WriteError($"The ratings pages does not contain valid JSON.\nUnable to purge.\nYou will have to manually correct this.\n{ex.Message}");
+            }
+        }
+
+        private static void SaveRatings(Options options, RatingPage ratingsPage)
+        {
+            string summary = $"Purged ratings by [{options.PurgeUserName}]";
+            if (options.Count >= 0)
+                summary += $" Count={options.Count}";
+            if (options.Days >= 0)
+                summary += $" Days={options.Days}";
+            ratingsPage.Save(summary);
+        }
+
+        private static int PurgeUsersVotes(Options options, List<VoteTotal> voteTotals)
+        {
+            var ratings = new RatingsHistory(options.Site, options.RatingsPage, options.Days);
             int purgeCount = 0;
 
-            do
+            foreach (XmlNode revision in ratings.Items)
             {
-                ratings.Load(GetRatingsUrl(options.Site, rvstartid, options.Days));
-                var revs = ratings.SelectNodes("/api/query/pages/page/revisions/rev");
-                foreach (XmlNode rev in revs)
+                Vote vote = GetVote(revision);
+                if (vote != null && vote.User == options.PurgeUserName)
                 {
-                    Vote vote = GetVote(rev);
-                    if (vote != null && vote.User == options.UserName)
+                    UndoVote(voteTotals, vote);
+                    ++purgeCount;
+                    if (options.Count != -1 && purgeCount >= options.Count)
                     {
-                        Console.WriteLine($"Undoing [{vote.Score}] [{vote.DeckName}] [{vote.Timestamp.ToWikiTimestamp()}]");
-                        VoteTotal deckTotals = voteTotals.Where(x => x.Name == vote.DeckName).FirstOrDefault();
-                        if (deckTotals != null)
-                        {
-                            deckTotals.Total -= vote.Score;
-                            --deckTotals.Votes;
-                        }
-                        else
-                        {
-                            Console.WriteLine($"Warning: no deck entry found for {vote.DeckName}");
-                        }
-                        ++purgeCount;
+                        Console.WriteLine("Info: vote count limit reached.");
+                        break; // foreach
                     }
                 }
-                rvstartid = GetContinueId(ratings);
-            } while (rvstartid != null);
+            }
             return purgeCount;
+        }
+        
+        private static void UndoVote(List<VoteTotal> voteTotals, Vote vote)
+        {
+            Console.WriteLine($"Undoing [{vote.Score}] [{vote.DeckName}] [{vote.Timestamp.ToWikiTimestamp()}]");
+            VoteTotal deckTotals = voteTotals.Where(x => x.Name == vote.DeckName).FirstOrDefault();
+            if (deckTotals != null)
+            {
+                // Consider: add a force switch to control aborts here
+                deckTotals.Total -= vote.Score;
+                if (--deckTotals.Votes == 0)
+                {
+                    if (deckTotals.Votes != 0)
+                        throw new BadVoteTotalException($"Error: Votes reached 0 but total was {deckTotals.Total} for deck [{deckTotals.Name}]");
+                    voteTotals.Remove(deckTotals);
+                    Console.WriteLine($"Info: entry for [{deckTotals.Name}] removed because votes reduced to 0.");
+                }
+                else
+                {
+                    if (deckTotals.Total <= 0)
+                        throw new BadVoteTotalException($"Error: Total reached {deckTotals.Total} but votes was {deckTotals.Votes} for deck [{deckTotals.Name}]");
+                    if (deckTotals.Total < deckTotals.Votes || deckTotals.Total > deckTotals.Votes * 5)
+                        throw new BadVoteTotalException($"Error: Invalid totals for deck [{deckTotals.Name}] total={deckTotals.Total} votes={deckTotals.Votes}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Warning: no deck entry found for {vote.DeckName}");
+            }
         }
 
         private static Vote GetVote(XmlNode rev)
@@ -107,34 +148,6 @@ namespace RatingPurge
                 Timestamp = DateTimeOffset.Parse(rev.Attributes["timestamp"].Value),
                 RevId = rev.Attributes["revid"].Value
             };
-        }
-
-        private static string GetRatingsUrl(string site, string rvstartid, int days)
-        {
-            string ratingsUrl = site + "/api.php?action=query&prop=revisions&titles=Ratings:DeckRatings&rvprop=ids|timestamp|user|comment&rvlimit=500&format=xml&&rvend=";
-            ratingsUrl += GetRvend(days);
-            if (!string.IsNullOrEmpty(rvstartid))
-                ratingsUrl += "&rvstartid=" + rvstartid;
-            ratingsUrl += "&random=" + DateTime.Now.Ticks.ToString();
-            return ratingsUrl;
-        }
-
-        private static string GetContinueId(XmlDocument ratings)
-        {
-            var queryContinue = ratings.SelectNodes("/api/query-continue/revisions");
-            if (queryContinue.Count == 0)
-                return null;
-            return queryContinue[0].Attributes["rvstartid"].Value;
-        }
-
-        private static string GetRvend(int days)
-        {
-            if (days < 0)
-                return "2018-03-26T19:10:23Z"; // when ratings went live
-
-            DateTimeOffset startOfToday = new DateTimeOffset(DateTime.UtcNow.Date, new TimeSpan(0));
-            DateTimeOffset wantedStart = startOfToday.AddDays(-days);
-            return wantedStart.ToWikiTimestamp();
         }
 
         private static string GetPassword(Options options)
@@ -192,6 +205,14 @@ namespace RatingPurge
             string batman = $"Holy {robin[rand.Next(robin.Length)]} Batman!";
             Console.Error.WriteLine(batman);
             Console.Error.WriteLine(errorMessage);
+        }
+
+        private static void Pause(string message)
+        {
+            Console.Error.WriteLine(message);
+            while (Console.KeyAvailable)
+                Console.ReadKey(true);
+            Console.ReadKey(true);
         }
 
         private static string UserAgent
