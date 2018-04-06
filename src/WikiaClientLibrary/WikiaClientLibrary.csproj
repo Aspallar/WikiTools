@@ -54,9 +54,7 @@
     <Compile Include="HttpErrors.cs" />
     <Compile Include="WikiaClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ExtendedWebClient.cs">
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="ExtendedWebClient.cs" />
     <Compile Include="WikiaPage.cs" />
   </ItemGroup>
   <ItemGroup>
