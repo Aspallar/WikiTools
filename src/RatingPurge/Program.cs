@@ -18,8 +18,23 @@ namespace RatingPurge
         
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(options => Run(options));
+#if !DEBUG
+            const string issuesUrl = "https://github.com/Aspallar/WikiTools/issues";
+            try
+            {
+#endif
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(options => Run(options));
+#if !DEBUG
+            }
+            catch(Exception ex)
+            {
+                WriteError($"An unexpected error occurred. You should report this at {issuesUrl}");
+                Console.Error.WriteLine($"Holy gobbledygook Batman! Include this in the issue.\n{ex.ToString()}\n");
+                Pause("Press any key to raise issue.");
+                Process.Start(issuesUrl);
+            }
+#endif
         }
 
         private static void Run(Options options)
@@ -48,6 +63,10 @@ namespace RatingPurge
                     SaveRatings(options, ratingsPage);
                 else
                     Console.WriteLine($"No votes found for user {options.PurgeUserName}");
+            }
+            catch (MissingRatingsPageException)
+            {
+                WriteError($"I cannot find the ratings page [{options.RatingsPage}]");
             }
             catch (WikiaEditConflictException)
             {

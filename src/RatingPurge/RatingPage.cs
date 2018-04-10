@@ -14,6 +14,8 @@ namespace RatingPurge
         public new void Open()
         {
             base.Open();
+            if (!Exists)
+                throw new MissingRatingsPageException();
             Votes = JsonConvert.DeserializeObject<List<VoteTotal>>(Content);
             Content = null;
         }

@@ -9,6 +9,7 @@ copy src\DeckRatings\bin\release\CommandLine.dll Deploy\.
 copy src\RatingPurge\bin\Release\RatingPurge.exe Deploy\.
 copy src\RatingPurge\bin\Release\Newtonsoft.Json.dll Deploy\.
 copy src\RatingPurge\bin\Release\WikiaClientLibrary.dll Deploy\.
+copy src\GetRatings\bin\Release\GetRatings.exe Deploy\.
 goto :eof
 
 :wrongfolder
