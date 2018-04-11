@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -90,6 +91,10 @@ namespace RatingPurge
             {
                 WriteError($"The ratings pages does not contain valid JSON.\nUnable to purge.\nYou will have to manually correct this.\n{ex.Message}");
             }
+            catch (WebException ex)
+            {
+                WriteError($"There has bee a network error\n{ex.Message}");
+            }
         }
 
         private static void SaveRatings(Options options, RatingPage ratingsPage)
@@ -112,7 +117,7 @@ namespace RatingPurge
                 Vote vote = GetVote(revision);
                 if (vote != null && vote.User == options.PurgeUserName)
                 {
-                    UndoVote(voteTotals, vote);
+                    UndoVote(voteTotals, vote, options.Force);
                     ++purgeCount;
                     if (options.Count != -1 && purgeCount >= options.Count)
                     {
@@ -124,27 +129,42 @@ namespace RatingPurge
             return purgeCount;
         }
         
-        private static void UndoVote(List<VoteTotal> voteTotals, Vote vote)
+        private static void UndoVote(List<VoteTotal> voteTotals, Vote vote, bool force)
         {
             Console.WriteLine($"Undoing [{vote.Score}] [{vote.DeckName}] [{vote.Timestamp.ToWikiTimestamp()}]");
             VoteTotal deckTotals = voteTotals.Where(x => x.Name == vote.DeckName).FirstOrDefault();
             if (deckTotals != null)
             {
-                // Consider: add a force switch to control aborts here
                 deckTotals.Total -= vote.Score;
                 if (--deckTotals.Votes == 0)
                 {
                     if (deckTotals.Votes != 0)
-                        throw new BadVoteTotalException($"Error: Votes reached 0 but total was {deckTotals.Total} for deck [{deckTotals.Name}]");
+                    {
+                        string msg = $"Error: Votes reached 0 but total was {deckTotals.Total} for deck [{deckTotals.Name}]";
+                        if (!force)
+                            throw new BadVoteTotalException(msg);
+                        Console.WriteLine(msg);
+                    }
                     voteTotals.Remove(deckTotals);
                     Console.WriteLine($"Info: entry for [{deckTotals.Name}] removed because votes reduced to 0.");
                 }
                 else
                 {
                     if (deckTotals.Total <= 0)
-                        throw new BadVoteTotalException($"Error: Total reached {deckTotals.Total} but votes was {deckTotals.Votes} for deck [{deckTotals.Name}]");
-                    if (deckTotals.Total < deckTotals.Votes || deckTotals.Total > deckTotals.Votes * 5)
-                        throw new BadVoteTotalException($"Error: Invalid totals for deck [{deckTotals.Name}] total={deckTotals.Total} votes={deckTotals.Votes}");
+                    {
+                        string msg = $"Error: Total reached {deckTotals.Total} but votes was {deckTotals.Votes} for deck [{deckTotals.Name}]";
+                        if (!force)
+                            throw new BadVoteTotalException(msg);
+                        Console.WriteLine($"Error: entry for [{deckTotals.Name}] removed because votes reduced to less than 0.");
+                        voteTotals.Remove(deckTotals);
+                    }
+                    else if (deckTotals.Total < deckTotals.Votes || deckTotals.Total > deckTotals.Votes * 5)
+                    {
+                        string msg = $"Error: Invalid totals for deck [{deckTotals.Name}] total={deckTotals.Total} votes={deckTotals.Votes}";
+                        if (!force)
+                            throw new BadVoteTotalException(msg);
+                        Console.WriteLine(msg);
+                    }
                 }
             }
             else

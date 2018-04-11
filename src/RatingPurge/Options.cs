@@ -26,7 +26,10 @@ namespace RatingPurge
 
         [Option(Default = -1, HelpText = "Number of votes to undo. (defaults to all votes)")]
         public int Count { get; set; }
-        
+
+        [Option(HelpText = "Force update of votes when vote totals are inconsistent")]
+        public bool Force { get; set; }
+
         [Usage]
         public static IEnumerable<Example> Examples
         {
