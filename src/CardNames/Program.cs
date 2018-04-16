@@ -31,7 +31,14 @@ namespace CardNames
                         var wordList = new List<string>();
                         AddPossibleWords(hunspell, word, wordList);
                         if (IsPlural(word))
-                            AddPossibleWords(hunspell, word.Substring(0, word.Length - 1), wordList);
+                        {
+                            string single = word.Substring(0, word.Length - 1);
+                            if (!single.EndsWith("'"))
+                            {
+                                AddPossibleWords(hunspell, single, wordList);
+                                AddPossibleWords(hunspell, single + "'s", wordList);
+                            }
+                        }
                         lineWords.Add(wordList);
                     }
                     var lineOut = new StringBuilder();
