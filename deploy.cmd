@@ -10,6 +10,12 @@ copy src\RatingPurge\bin\Release\RatingPurge.exe Deploy\.
 copy src\RatingPurge\bin\Release\Newtonsoft.Json.dll Deploy\.
 copy src\RatingPurge\bin\Release\WikiaClientLibrary.dll Deploy\.
 copy src\GetRatings\bin\Release\GetRatings.exe Deploy\.
+copy src\CardNames\bin\Release\CardNames.exe Deploy\.
+copy src\CardNames\bin\Release\Hunspell*.dll Deploy\.
+copy src\CardNames\bin\Release\NHunspell.dll Deploy\.
+copy src\CardNames\bin\Release\en_US.* Deploy\.
+copy src\CardNames\bin\Release\GathererShared.dll Deploy\.
+copy src\CardNames\bin\Release\Cards.json Deploy\.
 goto :eof
 
 :wrongfolder
