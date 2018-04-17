@@ -1,4 +1,5 @@
-﻿using GathererShared;
+﻿using CommandLine;
+using GathererShared;
 using Newtonsoft.Json;
 using NHunspell;
 using System;
@@ -14,64 +15,80 @@ namespace CardNames
 
         static void Main(string[] args)
         {
-            TextReader input = (args.Length == 0) ? Console.In : new StreamReader(args[0]);
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(options => Run(options));
+        }
 
-            char[] unwanted = { ' ', '-' };
+        private static void Run(Options options)
+        {
+            TextReader input = string.IsNullOrEmpty(options.InputFileName) ? Console.In : new StreamReader(options.InputFileName);
+
             using (var hunspell = new Hunspell("en_us.aff", "en_us.dic"))
             {
                 var cards = GetCardData("Cards.json");
                 AddCardNameWordsToSpellChecker(hunspell, cards);
+
                 string line;
                 while ((line = input.ReadLine()) != null)
                 {
-                    var lineWords = new List<List<string>>();
-                    string[] words = line.Split(space, StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var word in words)
-                    {
-                        var wordList = new List<string>();
-                        AddPossibleWords(hunspell, word, wordList);
-                        if (IsPlural(word))
-                        {
-                            string single = word.Substring(0, word.Length - 1);
-                            if (!single.EndsWith("'"))
-                            {
-                                AddPossibleWords(hunspell, single, wordList);
-                                AddPossibleWords(hunspell, single + "'s", wordList);
-                            }
-                        }
-                        lineWords.Add(wordList);
-                    }
-                    var lineOut = new StringBuilder();
-                    int wordIndex = 0;
-                    string suffix;
-                    while (wordIndex < words.Length)
-                    {
-                        string[] nameWords = GetCardName(cards, words, lineWords, wordIndex, hunspell, out suffix);
-                        if (nameWords != null)
-                        {
-                            lineOut.Append("{{Card|");
-                            for (int k = 0; k < nameWords.Length; k++)
-                            {
-                                lineOut.Append(nameWords[k]);
-                                lineOut.Append(' ');
-                            }
-                            lineOut.Remove(lineOut.Length - 1, 1);
-                            lineOut.Append("}}");
-                            if (!IsPlural(nameWords[nameWords.Length - 1]) && IsPlural(words[wordIndex + nameWords.Length - 1]))
-                                lineOut.Append('s');
-                            lineOut.Append(suffix);
-                            lineOut.Append(' ');
-                            wordIndex += nameWords.Length;
-                        }
-                        else
-                        {
-                            lineOut.Append(words[wordIndex++]); // original word
-                            lineOut.Append(' ');
-                        }
-                    }
+                    string lineOut = ExpandCardNames(hunspell, cards, options.Prefix, line);
                     Console.WriteLine(lineOut);
                 }
             }
+        }
+
+        private static string ExpandCardNames(Hunspell hunspell, List<Card> cards, string noExpandPrefix, string line)
+        {
+            var lineWords = new List<List<string>>();
+            string[] words = line.Split(space, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var word in words)
+            {
+                var wordList = new List<string>();
+                AddPossibleWords(hunspell, word, wordList);
+                if (IsPlural(word))
+                {
+                    string single = word.Substring(0, word.Length - 1);
+                    if (!single.EndsWith("'"))
+                    {
+                        AddPossibleWords(hunspell, single, wordList);
+                        AddPossibleWords(hunspell, single + "'s", wordList);
+                    }
+                }
+                lineWords.Add(wordList);
+            }
+            var lineOut = new StringBuilder();
+            int wordIndex = 0;
+            string suffix;
+            while (wordIndex < words.Length)
+            {
+                string[] nameWords = GetCardName(cards, words, lineWords, wordIndex, hunspell, noExpandPrefix, out suffix);
+                if (nameWords != null)
+                {
+                    lineOut.Append("{{Card|");
+                    for (int k = 0; k < nameWords.Length; k++)
+                    {
+                        lineOut.Append(nameWords[k]);
+                        lineOut.Append(' ');
+                    }
+                    lineOut.Remove(lineOut.Length - 1, 1);
+                    lineOut.Append("}}");
+                    if (!IsPlural(nameWords[nameWords.Length - 1]) && IsPlural(words[wordIndex + nameWords.Length - 1]))
+                        lineOut.Append('s');
+                    lineOut.Append(suffix);
+                    lineOut.Append(' ');
+                    wordIndex += nameWords.Length;
+                }
+                else
+                {
+                    if (words[wordIndex].StartsWith(noExpandPrefix))
+                        lineOut.Append(words[wordIndex].Substring(1));
+                    else
+                        lineOut.Append(words[wordIndex]); // original word
+                    lineOut.Append(' ');
+                    ++wordIndex;
+                }
+            }
+            return lineOut.ToString();
         }
 
         private static bool IsPlural(string word)
@@ -98,7 +115,7 @@ namespace CardNames
             }
         }
 
-        private static string[] GetCardName(List<Card> cards, string[] originalWords, List<List<string>> lineWords, int wordIndex, Hunspell hunspell, out string suffix)
+        private static string[] GetCardName(List<Card> cards, string[] originalWords, List<List<string>> lineWords, int wordIndex, Hunspell hunspell, string noExpandPrefix, out string suffix)
         {
             suffix = "";
             foreach (var card in cards)
@@ -109,6 +126,13 @@ namespace CardNames
                 int lastWordIndex = nameWords.Length - 1;
                 for (int k = 0; k <= lastWordIndex; k++)
                 {
+                    if (wordIndex + k >= lineWords.Count)
+                    {
+                        isName = false;
+                        break; // for k
+                    }
+                    if (originalWords[wordIndex + k].StartsWith(noExpandPrefix))
+                        return null;
                     List<string> word = lineWords[wordIndex + k];
                     if (k == lastWordIndex)
                     {
@@ -155,39 +179,6 @@ namespace CardNames
             }
             foreach (var word in unknownWords)
                 hunspell.Add(word);
-        }
-
-        private static string[] GetCardName(List<Card> cards, string[] words, int wordIndex, Hunspell hunspell)
-        {
-            foreach (var card in cards)
-            {
-                var nameWords = card.Name.Split(' ');
-                bool isName = true;
-                for (int k = 0; k < nameWords.Length; k++)
-                {
-                    string word = words[wordIndex + k];
-                    if (hunspell.Spell(word))
-                    {
-                        if (word != nameWords[k])
-                        {
-                            isName = false;
-                            break; // for int k
-                        }
-                    }
-                    else
-                    {
-                        var altwords = hunspell.Suggest(word);
-                        if (!altwords.Contains(nameWords[k]))
-                        {
-                            isName = false;
-                            break; // for int k
-                        }
-                    }
-                }
-                if (isName)
-                    return nameWords;
-            }
-            return null;
         }
 
         private static List<Card> GetCardData(string fileName)
