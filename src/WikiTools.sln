@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CardNames", "CardNames\Card
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WikiToolsShared", "WikiToolsShared\WikiToolsShared.csproj", "{59D9FA86-9352-4E25-82C5-48D252228A5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UploadFiles", "UploadFiles\UploadFiles.csproj", "{A5223520-A620-4098-8A65-FCE5C7633CB8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{59D9FA86-9352-4E25-82C5-48D252228A5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{59D9FA86-9352-4E25-82C5-48D252228A5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{59D9FA86-9352-4E25-82C5-48D252228A5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A5223520-A620-4098-8A65-FCE5C7633CB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A5223520-A620-4098-8A65-FCE5C7633CB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A5223520-A620-4098-8A65-FCE5C7633CB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A5223520-A620-4098-8A65-FCE5C7633CB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
