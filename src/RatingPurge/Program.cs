@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using WikiaClientLibrary;
+using WikiToolsShared;
 
 namespace RatingPurge
 {
@@ -30,7 +31,7 @@ namespace RatingPurge
             }
             catch(Exception ex)
             {
-                WriteError($"An unexpected error occurred. You should report this at {issuesUrl}");
+                Utils.WriteError($"An unexpected error occurred. You should report this at {issuesUrl}");
                 Console.Error.WriteLine($"Holy gobbledygook Batman! Include this in the issue.\n{ex.ToString()}\n");
                 Pause("Press any key to raise issue.");
                 Process.Start(issuesUrl);
@@ -46,7 +47,7 @@ namespace RatingPurge
             {
                 if (!client.Login(userName, password))
                 {
-                    WriteError("That is an invalid logon.");
+                    Utils.WriteError("That is an invalid logon.");
                     return;
                 }
                 Purge(options, client);
@@ -67,33 +68,33 @@ namespace RatingPurge
             }
             catch (MissingRatingsPageException)
             {
-                WriteError($"I cannot find the ratings page [{options.RatingsPage}]");
+                Utils.WriteError($"I cannot find the ratings page [{options.RatingsPage}]");
             }
             catch (WikiaEditConflictException)
             {
-                WriteError("The ratings page was edited during purge. Purge aborted.");
+                Utils.WriteError("The ratings page was edited during purge. Purge aborted.");
             }
             catch (WikiaEditException ex)
             {
-                WriteError("The purge was aborted due to wiki edit error: " + ex.Message);
+                Utils.WriteError("The purge was aborted due to wiki edit error: " + ex.Message);
             }
             catch (WikiaUnknownResponseException)
             {
-                WriteError("Something went wrong. The wiki sent an unknown respose to the edit request. Please check the ratings page on the wiki.");
-                Pause("Press any key to review ratings page");
+                Utils.WriteError("Something went wrong. The wiki sent an unknown respose to the edit request. Please check the ratings page on the wiki.");
+                Utils.Pause("Press any key to review ratings page");
                 Process.Start(options.Site + "/wiki/" + options.RatingsPage);
             }
             catch (BadVoteTotalException ex)
             {
-                WriteError(ex.Message);
+                Utils.WriteError(ex.Message);
             }
             catch (JsonException ex)
             {
-                WriteError($"The ratings pages does not contain valid JSON.\nUnable to purge.\nYou will have to manually correct this.\n{ex.Message}");
+                Utils.WriteError($"The ratings pages does not contain valid JSON.\nUnable to purge.\nYou will have to manually correct this.\n{ex.Message}");
             }
             catch (WebException ex)
             {
-                WriteError($"There has bee a network error\n{ex.Message}");
+                Utils.WriteError($"There has bee a network error\n{ex.Message}");
             }
         }
 
@@ -194,7 +195,7 @@ namespace RatingPurge
             if (!string.IsNullOrEmpty(options.Password))
                 return options.Password;
             Console.Write("Password: ");
-            string password = ReadPasswordFromConsole();
+            string password = Utils.ReadPasswordFromConsole();
             Console.WriteLine();
             return password;
         }
@@ -206,52 +207,6 @@ namespace RatingPurge
             Console.Write("Username: ");
             string userName = Console.ReadLine();
             return userName;
-        }
-
-        public static string ReadPasswordFromConsole()
-        {
-            var password = new StringBuilder();
-            ConsoleKeyInfo key;
-
-            do
-            {
-                key = Console.ReadKey(true);
-
-                if (!char.IsControl(key.KeyChar))
-                {
-                    password.Append(key.KeyChar);
-                    Console.Write("*");
-                }
-                else
-                {
-                    if (key.Key == ConsoleKey.Backspace && password.Length > 0)
-                    {
-                        password.Remove(password.Length - 1, 1);
-                        Console.Write("\b \b");
-                    }
-                }
-            }  while (key.Key != ConsoleKey.Enter);
-            return password.ToString();
-        }
-
-        private static void WriteError(string errorMessage)
-        {
-            string[] robin = {
-                "bouncing bunnies", "pulsating penguins", "kinky kangaroo",
-                "rampaging ferocidon", "kippers", "deviant dinos"
-            };
-            Random rand = new Random();
-            string batman = $"Holy {robin[rand.Next(robin.Length)]} Batman!";
-            Console.Error.WriteLine(batman);
-            Console.Error.WriteLine(errorMessage);
-        }
-
-        private static void Pause(string message)
-        {
-            Console.Error.WriteLine(message);
-            while (Console.KeyAvailable)
-                Console.ReadKey(true);
-            Console.ReadKey(true);
         }
 
         private static string UserAgent

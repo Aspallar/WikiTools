@@ -15,8 +15,21 @@ namespace CardNames
 
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(options => Run(options));
+
+#if !DEBUG
+            try
+            {
+#endif
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(options => Run(options));
+#if !DEBUG
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Error.");
+                Console.Error.WriteLine(ex.ToString());
+            }
+#endif
         }
 
         private static void Run(Options options)
