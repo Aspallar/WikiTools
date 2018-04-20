@@ -73,11 +73,19 @@ namespace UploadFiles
                     uploadParams.Add(editTokenContent, "token");
                     uploadParams.Add(formatContent, "format");
                     uploadParams.Add(textContent, "text");
+                    if (force)
+                    {
+                        var forceContent = new StringContent("1");
+                        forceContent.Headers.Add("Content-Disposition", "form-data; name=\"ignorewarnings\"");
+                        uploadParams.Add(forceContent, "ignorewarnings");
+                    }
                     uploadParams.Add(streamContent, "file", Path.GetFileName(file));
 
-                    HttpResponseMessage response = await _client.PostAsync(_api, uploadParams);
-                    string responseContent = await response.Content.ReadAsStringAsync();
-                    return new UploadResponse(responseContent);
+                    using (HttpResponseMessage response = await _client.PostAsync(_api, uploadParams))
+                    {
+                        string responseContent = await response.Content.ReadAsStringAsync();
+                        return new UploadResponse(responseContent);
+                    }
                 }
             }
         }

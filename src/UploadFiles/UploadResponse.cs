@@ -8,7 +8,10 @@ namespace UploadFiles
         public string Xml { get; private set; }
         public string Result { get; private set; }
         public bool AlreadyExists { get; private set; }
+        public bool BadFilename { get; private set; }
         public List<string> Duplicates { get; private set; }
+
+        public bool IsDuplicate => Duplicates.Count > 0;
 
         public UploadResponse(string xml)
         {
@@ -27,6 +30,8 @@ namespace UploadFiles
                 XmlNode warnings = upload.SelectSingleNode("warnings");
                 if (warnings.Attributes["exists"] != null)
                     AlreadyExists = true;
+                if (warnings.Attributes["badfilename"] != null)
+                    BadFilename = true;
                 XmlNodeList duplicates = warnings.SelectNodes("duplicate/duplicate");
                 foreach (XmlNode node in duplicates)
                     Duplicates.Add(node.InnerText);

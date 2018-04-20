@@ -10,8 +10,13 @@ using WikiToolsShared;
 
 namespace UploadFiles
 {
+    // TODO: validate file types (PNG, JPG etc). Skip invalid ones.
+    // TODO: implement prompt
+
     class Program
     {
+        private const char filenameSeparator = '|';
+
         static void Main(string[] args)
         {
 #if !DEBUG
@@ -42,43 +47,64 @@ namespace UploadFiles
             {
                 if (!await uploader.LoginAsync(username, password))
                 {
-                    Console.WriteLine("Unable to log in. Invalid credentials or site not available.");
+                    Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
                 IEnumerable<string> files = GetFilesToUpload(options);
                 foreach (string file in files)
                 {
                     Console.Write($"Uploading [{file}] ");
-                    UploadResponse response = await uploader.UpLoadAsync(file);
+                    UploadResponse response = await uploader.UpLoadAsync(file, options.Force);
                     if (response.Result == ResponseCodes.Success)
                     {
                         Console.WriteLine("SUCCESS");
                     }
+                    else if (response.Result == ResponseCodes.Warning)
+                    {
+                        string warningsText = GetWarningsText(response);
+                        if (!string.IsNullOrEmpty(options.Fails))
+                            File.AppendAllText(options.Fails, file + filenameSeparator + warningsText + "\n");
+                        Console.Write("WARNING");
+                        Console.WriteLine(warningsText);
+                    }
                     else
                     {
-                        Console.Write("WARNING");
-                        if (response.AlreadyExists)
-                            Console.Write(" Already exists.");
-                        if (response.Duplicates.Count > 0)
-                        {
-                            Console.Write(" Duplicate of");
-                            foreach (string duplicate in response.Duplicates)
-                                Console.Write($" [{duplicate}]");
-                            Console.Write(".");
-                        }
-                        Console.WriteLine();
+                        Console.WriteLine("UNEXPECTED RESPONSE");
+                        Console.WriteLine(response.Xml);
+                        break; // foreach file
                     }
-
                 }
             }
         }
-        
+
+        private static string GetWarningsText(UploadResponse response)
+        {
+            StringBuilder text = new StringBuilder();
+            if (response.AlreadyExists)
+                text.Append(" Already exists.");
+            if (response.BadFilename)
+                text.Append(" Invalid file name.");
+            if (response.IsDuplicate)
+            {
+                text.Append(" Duplicate of");
+                foreach (string duplicate in response.Duplicates)
+                    text.Append($" [{duplicate}]");
+                text.Append(".");
+            }
+            return text.ToString();
+        }
+
         private static IEnumerable<string> GetFilesToUpload(Options options)
         {
-            // TODO: files from a --list option
+            // TODO: handle file does not exist
+            if (!string.IsNullOrEmpty(options.List))
+            {
+                return GetListFileFilenames(options.List);
+            }
+
             try
             {
-                string fullPattern = options.FileNames;
+                string fullPattern = options.FilePattern;
                 string pattern = Path.GetFileName(fullPattern);
                 string folder = Path.GetDirectoryName(fullPattern);
                 return Directory.EnumerateFiles(folder, pattern);
@@ -86,6 +112,23 @@ namespace UploadFiles
             catch (DirectoryNotFoundException)
             {
                 return Enumerable.Empty<string>();
+            }
+        }
+
+        private static IEnumerable<string> GetListFileFilenames(string fileName)
+        {
+            using (var reader = new StreamReader(fileName))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    int pos = line.IndexOf(filenameSeparator);
+                    if (pos != -1)
+                        line = line.Substring(0, pos);
+                    string trimmedLine = line.Trim();
+                    if (trimmedLine.Length > 0)
+                        yield return trimmedLine;
+                }
             }
         }
 
