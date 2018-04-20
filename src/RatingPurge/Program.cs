@@ -33,7 +33,7 @@ namespace RatingPurge
             {
                 Utils.WriteError($"An unexpected error occurred. You should report this at {issuesUrl}");
                 Console.Error.WriteLine($"Holy gobbledygook Batman! Include this in the issue.\n{ex.ToString()}\n");
-                Pause("Press any key to raise issue.");
+                Utils.Pause("Press any key to raise issue.");
                 Process.Start(issuesUrl);
             }
 #endif
