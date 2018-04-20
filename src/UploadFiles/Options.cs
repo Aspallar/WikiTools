@@ -28,9 +28,6 @@ namespace UploadFiles
         [Option(HelpText = "Always upload even if file already exists or is a duplicate")]
         public bool Force { get; set; }
 
-        [Option(HelpText = "Prompt for upload if file already exists or is a duplicate")]
-        public bool Prompt { get; set; }
-
         [Option(HelpText = "Username (you will be prompted for this if ommited)")]
         public string User { get; set; }
 

@@ -16,6 +16,9 @@ copy src\CardNames\bin\Release\NHunspell.dll Deploy\.
 copy src\CardNames\bin\Release\en_US.* Deploy\.
 copy src\CardNames\bin\Release\GathererShared.dll Deploy\.
 copy src\CardNames\bin\Release\Cards.json Deploy\.
+copy src\UploadFiles\bin\Release\UploadFiles.exe Deploy\.
+copy src\UploadFiles\bin\Release\UploadFiles.exe.config Deploy\.
+copy src\UploadFiles\bin\Release\WikiToolsShared.dll Deploy\.
 goto :eof
 
 :wrongfolder

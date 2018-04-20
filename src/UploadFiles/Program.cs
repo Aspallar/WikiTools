@@ -11,8 +11,6 @@ using WikiToolsShared;
 
 namespace UploadFiles
 {
-    // TODO: implement prompt
-
     class Program
     {
         private const char filenameSeparator = '|';
@@ -51,6 +49,9 @@ namespace UploadFiles
 
         private static async Task RunAsync(Options options)
         {
+            if (string.IsNullOrEmpty(options.List) && string.IsNullOrEmpty(options.FilePattern))
+                throw new UploadFilesFatalException("No files specified. Specify a file pattern or use --list");
+
             using (FileUploader uploader = new FileUploader(GetSite(options), GetPageText(options), options.Category))
             {
                 string username = GetUsername(options);
@@ -103,22 +104,26 @@ namespace UploadFiles
 
         private static string GetSite(Options options)
         {
+            bool usingDefault = false;
             string site = options.Site;
             if (string.IsNullOrEmpty(site))
+            {
                 site = Properties.Settings.Default.DefaultSite;
+                usingDefault = true;
+            }
+
             if (string.IsNullOrEmpty(site))
                 throw new UploadFilesFatalException("No site specified. Use --site or edit UploadFiles.exe.config to configure a default site.");
             if (site.EndsWith("/"))
                 throw new UploadFilesFatalException($"Invalid site {site}. Don't end the site name with a '/'");
 
-            try
-            {
-                Uri uri = new Uri(site);
-            }
-            catch (UriFormatException)
-            {
+            if (!Uri.IsWellFormedUriString(site, UriKind.Absolute) || 
+                    !site.ToLowerInvariant().StartsWith("http"))
                 throw new UploadFilesFatalException($"Invalid site: {site}");
-            }
+
+            if (usingDefault)
+                Console.WriteLine("Using default site: " + site);
+
             return site;
         }
 
