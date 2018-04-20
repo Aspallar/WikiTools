@@ -1,58 +1,82 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using WikiToolsShared;
 
 namespace UploadFiles
 {
-    // TODO: validate file types (PNG, JPG etc). Skip invalid ones.
     // TODO: implement prompt
 
     class Program
     {
         private const char filenameSeparator = '|';
+        static int cancel = 0;
 
         static void Main(string[] args)
         {
-#if !DEBUG
-            const string issuesUrl = "https://github.com/Aspallar/WikiTools/issues";
             try
             {
-#endif
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => RunAsync(options).GetAwaiter().GetResult());
-                Utils.Pause("Done. Press a key");
-#if !DEBUG
             }
+            catch (UploadFilesFatalException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+            catch (HttpRequestException ex)
+            {
+                if (ex.InnerException == null)
+                    Console.Error.WriteLine(ex.Message);
+                else
+                    Console.Error.WriteLine(ex.InnerException.Message);
+            }
+            catch (FileNotFoundException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+#if !DEBUG
             catch(Exception ex)
             {
-                Utils.WriteError($"An unexpected error occurred. You should report this at {issuesUrl}");
-                Console.Error.WriteLine($"Holy gobbledygook Batman! Include this in the issue.\n{ex.ToString()}\n");
-                Utils.Pause("Press any key to raise issue.");
-                Process.Start(issuesUrl);
+                Console.Error.WriteLine("An unexpected error occurred.");
+                Console.Error.WriteLine(ex.ToString());
             }
 #endif
         }
 
         private static async Task RunAsync(Options options)
         {
-            string username = GetUsername(options);
-            string password = GetPassword(options);
-            using (FileUploader uploader = new FileUploader(options.Site))
+            using (FileUploader uploader = new FileUploader(GetSite(options), GetPageText(options), options.Category))
             {
+                string username = GetUsername(options);
+                string password = GetPassword(options);
                 if (!await uploader.LoginAsync(username, password))
                 {
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
                 IEnumerable<string> files = GetFilesToUpload(options);
+                Console.CancelKeyPress += Console_CancelKeyPress;
                 foreach (string file in files)
                 {
+                    if (cancel != 0)
+                        break; // foreach file
+
+                    if (!HasValidFileType(file))
+                    {
+                        Console.WriteLine($"Skipping [{file}] ERROR Unsupported file type \"{Path.GetExtension(file)}\".");
+                        continue; // foreach file
+                    }
+                    if (!File.Exists(file))
+                    {
+                        Console.WriteLine($"Skipping [{file}] ERROR file not found.");
+                        continue; // foreach file
+                    }
                     Console.Write($"Uploading [{file}] ");
                     UploadResponse response = await uploader.UpLoadAsync(file, options.Force);
                     if (response.Result == ResponseCodes.Success)
@@ -69,12 +93,42 @@ namespace UploadFiles
                     }
                     else
                     {
-                        Console.WriteLine("UNEXPECTED RESPONSE");
+                        Console.WriteLine("Unexpected response from wiki site.");
                         Console.WriteLine(response.Xml);
                         break; // foreach file
                     }
                 }
             }
+        }
+
+        private static string GetSite(Options options)
+        {
+            string site = options.Site;
+            if (string.IsNullOrEmpty(site))
+                site = Properties.Settings.Default.DefaultSite;
+            if (string.IsNullOrEmpty(site))
+                throw new UploadFilesFatalException("No site specified. Use --site or edit UploadFiles.exe.config to configure a default site.");
+            if (site.EndsWith("/"))
+                throw new UploadFilesFatalException($"Invalid site {site}. Don't end the site name with a '/'");
+
+            try
+            {
+                Uri uri = new Uri(site);
+            }
+            catch (UriFormatException)
+            {
+                throw new UploadFilesFatalException($"Invalid site: {site}");
+            }
+            return site;
+        }
+
+        private static string GetPageText(Options options)
+        {
+            if (options.NoContent)
+                return string.Empty;
+            if (string.IsNullOrEmpty(options.Content))
+                return Properties.Settings.Default.DefaultText;
+            return File.ReadAllText(options.Content);
         }
 
         private static string GetWarningsText(UploadResponse response)
@@ -96,7 +150,6 @@ namespace UploadFiles
 
         private static IEnumerable<string> GetFilesToUpload(Options options)
         {
-            // TODO: handle file does not exist
             if (!string.IsNullOrEmpty(options.List))
             {
                 return GetListFileFilenames(options.List);
@@ -107,6 +160,8 @@ namespace UploadFiles
                 string fullPattern = options.FilePattern;
                 string pattern = Path.GetFileName(fullPattern);
                 string folder = Path.GetDirectoryName(fullPattern);
+                if (string.IsNullOrEmpty(folder))
+                    folder = ".";
                 return Directory.EnumerateFiles(folder, pattern);
             }
             catch (DirectoryNotFoundException)
@@ -132,6 +187,17 @@ namespace UploadFiles
             }
         }
 
+        private static bool HasValidFileType(string filename)
+        {
+            string[] validTypes = { ".png", ".gif", ".jpg",
+                ".jpeg", ".ico", ".pdf", ".svg", ".odt", ".ods",
+                ".odp", ".odg", ".odc", ".odf", ".odi", ".odm",
+                ".ogg", ".ogv", ".oga" };
+
+            string extension = Path.GetExtension(filename).ToLowerInvariant();
+            return validTypes.Contains(extension);
+        }
+
         private static string GetPassword(Options options)
         {
             if (!string.IsNullOrEmpty(options.Password))
@@ -149,6 +215,15 @@ namespace UploadFiles
             Console.Write("Username: ");
             string userName = Console.ReadLine();
             return userName;
+        }
+
+        private static void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            if (e.SpecialKey == ConsoleSpecialKey.ControlC)
+            {
+                Interlocked.Increment(ref cancel);
+                e.Cancel = true;
+            }
         }
     }
 }
