@@ -51,11 +51,16 @@ namespace UploadFiles
         {
             options.Validate();
             Console.WriteLine($"Uploading to {options.Site}");
+            if (options.WaitFiles <= 0 || options.WaitTime <= 0)
+                Console.WriteLine("No waiting between uploads");
+            else
+                Console.WriteLine($"Waiting for {options.WaitTime} seconds every {options.WaitFiles} uploads.");
             RunAsync(options).GetAwaiter().GetResult();
         }
 
         private static async Task RunAsync(Options options)
         {
+            var waiter = new Waiter(options.WaitFiles, options.WaitTime);
             using (FileUploader uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
             {
                 string username = GetUsername(options);
@@ -102,6 +107,7 @@ namespace UploadFiles
                         Console.WriteLine(response.Xml);
                         break; // foreach file
                     }
+                    await waiter.Wait();
                 }
             }
         }

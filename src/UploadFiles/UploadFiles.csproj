@@ -64,9 +64,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UploadFilesFatalException.cs" />
     <Compile Include="UploadResponse.cs" />
+    <Compile Include="Waiter.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

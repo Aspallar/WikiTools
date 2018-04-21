@@ -40,5 +40,23 @@ namespace UploadFiles.Properties {
                 return ((string)(this["DefaultText"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("10")]
+        public int WaitFiles {
+            get {
+                return ((int)(this["WaitFiles"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("60")]
+        public int WaitTime {
+            get {
+                return ((int)(this["WaitTime"]));
+            }
+        }
     }
 }

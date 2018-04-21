@@ -9,6 +9,8 @@ namespace UploadFiles
         const string help = "(use --help to see available parameters)";
 
         private string _site;
+        private int? _waitFiles;
+        private int? _waitTime;
 
         [Value(0, HelpText = "File pattern for files to upload e.g. images\\*.png")]
         public string FilePattern { get; set; }
@@ -41,11 +43,25 @@ namespace UploadFiles
         [Option(HelpText = "Always upload even if file already exists or is a duplicate")]
         public bool Force { get; set; }
 
-        [Option(HelpText = "Username (you will be prompted for this if ommited)")]
+        [Option(HelpText = "Username (you will be prompted for this if omitted)")]
         public string User { get; set; }
 
-        [Option(HelpText = "Password (you will be prompted for this if ommited)")]
+        [Option(HelpText = "Password (you will be prompted for this if omitted)")]
         public string Password { get; set; }
+
+        [Option("wait-files", HelpText = "Number of files to upload between waits, see also --wait-time.")]
+        public int WaitFiles
+        {
+            get { return _waitFiles ?? Properties.Settings.Default.WaitFiles; }
+            set { _waitFiles = value; }
+        }
+
+        [Option("wait-time", HelpText = "Number of seconds to wait after every --wait-files are uploaded.")]
+        public int WaitTime
+        {
+            get { return _waitTime ?? Properties.Settings.Default.WaitTime; }
+            set { _waitTime = value; }
+        }
 
         public void Validate()
         {
