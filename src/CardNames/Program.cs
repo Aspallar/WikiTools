@@ -26,19 +26,20 @@ namespace CardNames
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine("Error.");
-                Console.Error.WriteLine(ex.ToString());
+                Console.Error.WriteLine("Error(s).");
+                WriteExceptionMessages(ex);
             }
 #endif
         }
 
         private static void Run(Options options)
         {
+            DataFileNames fileNames = new DataFileNames();
             TextReader input = string.IsNullOrEmpty(options.InputFileName) ? Console.In : new StreamReader(options.InputFileName);
 
-            using (var hunspell = new Hunspell("en_us.aff", "en_us.dic"))
+            using (var hunspell = new Hunspell(fileNames.DictionaryAff, fileNames.DictionaryMain))
             {
-                var cards = GetCardData("Cards.json");
+                var cards = GetCardData(fileNames.CardData);
                 AddCardNameWordsToSpellChecker(hunspell, cards);
 
                 string line;
@@ -202,5 +203,11 @@ namespace CardNames
             return cards;
         }
 
+        private static void WriteExceptionMessages(Exception ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            if (ex.InnerException != null)
+                WriteExceptionMessages(ex.InnerException);
+        }
     }
 }
