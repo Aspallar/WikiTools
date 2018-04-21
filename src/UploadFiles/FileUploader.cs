@@ -61,8 +61,9 @@ namespace UploadFiles
 
         public async Task<UploadResponse> UpLoadAsync(string file, bool force = false)
         {
+            string filename = Path.GetFileName(file);
             using (var actionContent = new StringContent("upload"))
-            using (var fileNameContent = new StringContent(Path.GetFileName(file)))
+            using (var fileNameContent = new StringContent(filename))
             using (var editTokenContent = new StringContent(_editToken))
             using (var textContent = new StringContent(_defaultText))
             using (var formatContent = new StringContent("xml"))
@@ -70,7 +71,7 @@ namespace UploadFiles
             using (var streamContent = new StreamContent(fs))
             {
                 streamContent.Headers.Add("Content-Type", "application/octet-stream");
-                streamContent.Headers.Add("Content-Disposition", "form-data; name=\"file\"; filename=\"" + Path.GetFileName(file) + "\"");
+                streamContent.Headers.Add("Content-Disposition", $"form-data; name=\"file\"; filename=\"{filename}\"");
                 actionContent.Headers.Add("Content-Disposition", "form-data; name=\"action\"");
                 fileNameContent.Headers.Add("Content-Disposition", "form-data; name=\"filename\"");
                 editTokenContent.Headers.Add("Content-Disposition", "form-data; name=\"token\"");
@@ -89,7 +90,7 @@ namespace UploadFiles
                         forceContent.Headers.Add("Content-Disposition", "form-data; name=\"ignorewarnings\"");
                         uploadParams.Add(forceContent, "ignorewarnings");
                     }
-                    uploadParams.Add(streamContent, "file", Path.GetFileName(file));
+                    uploadParams.Add(streamContent, "file", filename);
 
                     using (HttpResponseMessage response = await _client.PostAsync(_api, uploadParams))
                     {

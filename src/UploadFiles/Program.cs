@@ -41,10 +41,17 @@ namespace UploadFiles
 #if !DEBUG
             catch(Exception ex)
             {
-                Console.Error.WriteLine("An unexpected error occurred.");
-                Console.Error.WriteLine(ex.ToString());
+                Console.Error.WriteLine("Unexpected error(s) occurred.");
+                ShowExceptionMessages(ex);
             }
 #endif
+        }
+
+        private static void ShowExceptionMessages(Exception ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            if (ex.InnerException != null)
+                ShowExceptionMessages(ex.InnerException);
         }
 
         private static async Task RunAsync(Options options)
@@ -132,7 +139,7 @@ namespace UploadFiles
             if (options.NoContent)
                 return string.Empty;
             if (string.IsNullOrEmpty(options.Content))
-                return Properties.Settings.Default.DefaultText;
+                return Properties.Settings.Default.DefaultText.Replace("\\n", "\n");
             return File.ReadAllText(options.Content);
         }
 
