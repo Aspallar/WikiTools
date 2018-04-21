@@ -15,13 +15,14 @@ namespace UploadFiles
         private string _editToken;
         private string _defaultText;
         private HttpClient _client;
+        private string _comment;
 
-        public FileUploader(string site, string defaultText, string category)
+        public FileUploader(string site, string defaultText, string category, string comment)
         {
-            _defaultText = defaultText;
+            _defaultText = defaultText == null ? "" : defaultText;
             if (!string.IsNullOrEmpty(category))
                 _defaultText += "\n[[Category:" + category + "]]";
-
+            _comment = comment == null ? "" : comment;
             _api = new Uri(site + "/api.php");
 
             HttpClientHandler handler = new HttpClientHandler();
@@ -66,6 +67,7 @@ namespace UploadFiles
             using (var fileNameContent = new StringContent(filename))
             using (var editTokenContent = new StringContent(_editToken))
             using (var textContent = new StringContent(_defaultText))
+            using (var commentContent = new StringContent(_comment))
             using (var formatContent = new StringContent("xml"))
             using (FileStream fs = File.OpenRead(file))
             using (var streamContent = new StreamContent(fs))
@@ -76,6 +78,7 @@ namespace UploadFiles
                 fileNameContent.Headers.Add("Content-Disposition", "form-data; name=\"filename\"");
                 editTokenContent.Headers.Add("Content-Disposition", "form-data; name=\"token\"");
                 textContent.Headers.Add("Content-Disposition", "form-data; name=\"text\"");
+                commentContent.Headers.Add("Content-Disposition", "form-data; name=\"comment\"");
                 formatContent.Headers.Add("Content-Disposition", "form-data; name=\"format\"");
                 using (var uploadParams = new MultipartFormDataContent())
                 {
@@ -84,6 +87,7 @@ namespace UploadFiles
                     uploadParams.Add(editTokenContent, "token");
                     uploadParams.Add(formatContent, "format");
                     uploadParams.Add(textContent, "text");
+                    uploadParams.Add(commentContent, "comment");
                     if (force)
                     {
                         var forceContent = new StringContent("1");

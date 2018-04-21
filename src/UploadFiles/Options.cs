@@ -13,13 +13,16 @@ namespace UploadFiles
         [Option(HelpText = "Filename of file containing text to use for initial page contents")]
         public string Content { get; set; }
 
+        [Option(HelpText = "Comment for upload log")]
+        public string Comment { get; set; }
+
         [Option(HelpText = "Don't include any page content at all, overrides --content")]
         public bool NoContent { get; set; }
 
         [Option(HelpText = "Category to add to each upload")]
         public string Category { get; set; }
 
-        [Option(HelpText = "Filename of a file containg a list of images to upload, 1 per line. Overrides the file pattern parameter.")]
+        [Option(HelpText = "Filename of a file containing a list of images to upload, 1 per line. Overrides the file pattern parameter.")]
         public string List { get; set; }
 
         [Option(HelpText = "File uploads that had a warning will be output to this file.")]

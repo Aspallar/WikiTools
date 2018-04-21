@@ -59,7 +59,7 @@ namespace UploadFiles
             if (string.IsNullOrEmpty(options.List) && string.IsNullOrEmpty(options.FilePattern))
                 throw new UploadFilesFatalException("No files specified. Specify a file pattern or use --list");
 
-            using (FileUploader uploader = new FileUploader(GetSite(options), GetPageText(options), options.Category))
+            using (FileUploader uploader = new FileUploader(GetSite(options), GetPageText(options), options.Category, options.Comment))
             {
                 string username = GetUsername(options);
                 string password = GetPassword(options);
