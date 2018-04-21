@@ -21,7 +21,7 @@ namespace UploadFiles
             try
             {
                 Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed(options => RunAsync(options).GetAwaiter().GetResult());
+                    .WithParsed(options => Run(options));
             }
             catch (UploadFilesFatalException ex)
             {
@@ -47,19 +47,16 @@ namespace UploadFiles
 #endif
         }
 
-        private static void ShowExceptionMessages(Exception ex)
+        private static void Run(Options options)
         {
-            Console.Error.WriteLine(ex.Message);
-            if (ex.InnerException != null)
-                ShowExceptionMessages(ex.InnerException);
+            options.Validate();
+            Console.WriteLine($"Uploading to {options.Site}");
+            RunAsync(options).GetAwaiter().GetResult();
         }
 
         private static async Task RunAsync(Options options)
         {
-            if (string.IsNullOrEmpty(options.List) && string.IsNullOrEmpty(options.FilePattern))
-                throw new UploadFilesFatalException("No files specified. Specify a file pattern or use --list");
-
-            using (FileUploader uploader = new FileUploader(GetSite(options), GetPageText(options), options.Category, options.Comment))
+            using (FileUploader uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
             {
                 string username = GetUsername(options);
                 string password = GetPassword(options);
@@ -109,31 +106,6 @@ namespace UploadFiles
             }
         }
 
-        private static string GetSite(Options options)
-        {
-            bool usingDefault = false;
-            string site = options.Site;
-            if (string.IsNullOrEmpty(site))
-            {
-                site = Properties.Settings.Default.DefaultSite;
-                usingDefault = true;
-            }
-
-            if (string.IsNullOrEmpty(site))
-                throw new UploadFilesFatalException("No site specified. Use --site or edit UploadFiles.exe.config to configure a default site.");
-            if (site.EndsWith("/"))
-                throw new UploadFilesFatalException($"Invalid site {site}. Don't end the site name with a '/'");
-
-            if (!Uri.IsWellFormedUriString(site, UriKind.Absolute) || 
-                    !site.ToLowerInvariant().StartsWith("http"))
-                throw new UploadFilesFatalException($"Invalid site: {site}");
-
-            if (usingDefault)
-                Console.WriteLine("Using default site: " + site);
-
-            return site;
-        }
-
         private static string GetPageText(Options options)
         {
             if (options.NoContent)
@@ -169,9 +141,8 @@ namespace UploadFiles
 
             try
             {
-                string fullPattern = options.FilePattern;
-                string pattern = Path.GetFileName(fullPattern);
-                string folder = Path.GetDirectoryName(fullPattern);
+                string pattern = Path.GetFileName(options.FilePattern);
+                string folder = Path.GetDirectoryName(options.FilePattern);
                 if (string.IsNullOrEmpty(folder))
                     folder = ".";
                 return Directory.EnumerateFiles(folder, pattern);
@@ -237,5 +208,13 @@ namespace UploadFiles
                 e.Cancel = true;
             }
         }
+
+        private static void ShowExceptionMessages(Exception ex)
+        {
+            Console.Error.WriteLine(ex.Message);
+            if (ex.InnerException != null)
+                ShowExceptionMessages(ex.InnerException);
+        }
+
     }
 }
