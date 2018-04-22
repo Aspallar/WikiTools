@@ -50,6 +50,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="FailWriter.cs" />
     <Compile Include="FileUploader.cs" />
     <Compile Include="LoginResponse.cs" />
     <Compile Include="Properties\Settings.Designer.cs">

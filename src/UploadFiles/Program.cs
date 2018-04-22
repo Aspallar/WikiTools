@@ -41,7 +41,6 @@ namespace UploadFiles
 #if !DEBUG
             catch(Exception ex)
             {
-                Console.Error.WriteLine("Unexpected error(s) occurred.");
                 ShowExceptionMessages(ex);
             }
 #endif
@@ -62,6 +61,7 @@ namespace UploadFiles
         {
             var waiter = new Waiter(options.WaitFiles, options.WaitTime);
             using (FileUploader uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
+            using (FailWriter failWriter = new FailWriter(options.Fails, filenameSeparator))
             {
                 string username = GetUsername(options);
                 string password = GetPassword(options);
@@ -79,12 +79,18 @@ namespace UploadFiles
 
                     if (!HasValidFileType(file))
                     {
-                        Console.WriteLine($"Skipping [{file}] ERROR Unsupported file type \"{Path.GetExtension(file)}\".");
+                        string msg = $" ERROR Unsupported file type \"{Path.GetExtension(file)}\".";
+                        Console.Write($"Skipping [{file}]");
+                        Console.WriteLine(msg);
+                        failWriter.Write(file, msg);
                         continue; // foreach file
                     }
                     if (!File.Exists(file))
                     {
-                        Console.WriteLine($"Skipping [{file}] ERROR file not found.");
+                        string msg = " ERROR file not found.";
+                        Console.Write($"Skipping [{file}]");
+                        Console.WriteLine(msg);
+                        failWriter.Write(file, msg);
                         continue; // foreach file
                     }
                     Console.Write($"Uploading [{file}] ");
@@ -96,10 +102,9 @@ namespace UploadFiles
                     else if (response.Result == ResponseCodes.Warning)
                     {
                         string warningsText = GetWarningsText(response);
-                        if (!string.IsNullOrEmpty(options.Fails))
-                            File.AppendAllText(options.Fails, file + filenameSeparator + warningsText + "\n");
                         Console.Write("WARNING");
                         Console.WriteLine(warningsText);
+                        failWriter.Write(file, warningsText);
                     }
                     else
                     {
