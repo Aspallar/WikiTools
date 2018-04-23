@@ -3,7 +3,6 @@ using log4net.Config;
 using log4net.Core;
 using log4net.Layout;
 using System.IO;
-using System;
 
 namespace UploadFiles
 {

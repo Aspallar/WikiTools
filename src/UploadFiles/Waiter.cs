@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UploadFiles
@@ -8,22 +9,32 @@ namespace UploadFiles
         private int _waitEvery;
         private int _waitTime;
         private int _count;
+        private CancellationToken _cancellationToken;
+        private ILog _log;
 
-        public Waiter(int waitEvery, int waitTimeInSeconds)
+        public Waiter(int waitEvery, int waitTimeInSeconds, CancellationToken token, ILog log)
         {
+            _log = log;
             _waitEvery = waitEvery;
             _waitTime = waitTimeInSeconds;
             _count = 0;
+            _cancellationToken = token;
         }
 
-        // Consider: Upgrade to .net 6 and use Task.CompletedTask
         public async Task Wait()
         {
-            if (_waitEvery <= 0 || _waitTime <= 0 || ++_count < _waitEvery)
-                return;
-            _count = 0;
-            Console.WriteLine($"Waiting {_waitTime} seconds.");
-            await Task.Delay(_waitTime * 1000);
+            try
+            {
+                if (_waitEvery <= 0 || _waitTime <= 0 || ++_count < _waitEvery)
+                {
+                    await Task.Delay(1000, _cancellationToken);
+                    return;
+                }
+                _count = 0;
+                _log.Info($"Waiting {_waitTime} seconds.");
+                await Task.Delay(_waitTime * 1000, _cancellationToken);
+            }
+            catch (TaskCanceledException) { }
         }
     }
 }

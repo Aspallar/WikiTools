@@ -16,7 +16,7 @@ namespace UploadFiles
     {
         private static ILog log = LogManager.GetLogger(typeof(Program));
         private const char filenameSeparator = '|';
-        static int cancel = 0;
+        static CancellationTokenSource cancelSource;
 
         static void Main(string[] args)
         {
@@ -57,14 +57,15 @@ namespace UploadFiles
                 log.Info("No waiting between uploads");
             else
                 log.Info($"Waiting for {options.WaitTime} seconds every {options.WaitFiles} uploads.");
-            RunAsync(options).GetAwaiter().GetResult();
+            using (cancelSource = new CancellationTokenSource())
+                RunAsync(options).GetAwaiter().GetResult();
         }
 
         private static async Task RunAsync(Options options)
         {
-            var waiter = new Waiter(options.WaitFiles, options.WaitTime);
-            using (FileUploader uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
-            using (FailWriter failWriter = new FailWriter(options.Fails, filenameSeparator))
+            var waiter = new Waiter(options.WaitFiles, options.WaitTime, cancelSource.Token, log);
+            using (var uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
+            using (var failWriter = new FailWriter(options.Fails, filenameSeparator))
             {
                 string username = GetUsername(options);
                 string password = GetPassword(options);
@@ -77,43 +78,45 @@ namespace UploadFiles
                 Console.CancelKeyPress += Console_CancelKeyPress;
                 foreach (string file in files)
                 {
-                    if (cancel != 0)
-                        break; // foreach file
-
-                    if (!HasValidFileType(file))
-                    {
-                        string msg = $" Unsupported file type \"{Path.GetExtension(file)}\".";
-                        log.Error($"[{file}]{msg}");
-                        failWriter.Write(file, msg);
-                        continue; // foreach file
-                    }
-                    if (!File.Exists(file))
-                    {
-                        string msg = " Not found.";
-                        log.Error($"[{file}]{msg}");
-                        failWriter.Write(file, msg);
-                        continue; // foreach file
-                    }
-                    log.Info($"Uploading [{file}] ");
-                    UploadResponse response = await uploader.UpLoadAsync(file, options.Force);
-                    if (response.Result == ResponseCodes.Success)
-                    {
-                        log.Info($"[{file}] Uploaded");
-                    }
-                    else if (response.Result == ResponseCodes.Warning)
-                    {
-                        string warningsText = GetWarningsText(response);
-                        log.Warn($"[{file}]{warningsText}");
-                        failWriter.Write(file, warningsText);
-                    }
-                    else
-                    {
-                        log.Fatal($"Unexpected response from wiki site.\n{response.Xml}");
-                        break; // foreach file
-                    }
-                    await waiter.Wait();
+                    if (cancelSource.IsCancellationRequested)
+                        break;
+                    if (await UploadFile(file, waiter, failWriter, uploader, options.Force))
+                        break;
                 }
             }
+        }
+
+        private static async Task<bool> UploadFile(string file, Waiter waiter, FailWriter failWriter, FileUploader uploader, bool force)
+        {
+            if (!HasValidFileType(file))
+            {
+                string msg = $" Unsupported file type \"{Path.GetExtension(file)}\".";
+                log.Error($"[{file}]{msg}");
+                failWriter.Write(file, msg);
+                return false;
+            }
+            if (!File.Exists(file))
+            {
+                string msg = " Not found.";
+                log.Error($"[{file}]{msg}");
+                failWriter.Write(file, msg);
+                return false;
+            }
+            log.Info($"Uploading [{file}]");
+            UploadResponse response = await uploader.UpLoadAsync(file, force);
+            if (response.Result == ResponseCodes.Warning)
+            {
+                string warningsText = GetWarningsText(response);
+                log.Warn($"[{file}]{warningsText}");
+                failWriter.Write(file, warningsText);
+            }
+            else if (response.Result != "Success")
+            {
+                log.Fatal($"Unexpected response from wiki site while uploading file {file}.\n{response.Xml}");
+                return true;
+            }
+            await waiter.Wait();
+            return false;
         }
 
         private static string GetPageText(Options options)
@@ -214,9 +217,9 @@ namespace UploadFiles
         {
             if (e.SpecialKey == ConsoleSpecialKey.ControlC)
             {
-                Interlocked.Increment(ref cancel);
-                e.Cancel = true;
                 log.Warn("Ctrl-C Pressed. Uploads will stop after current upload finishes.");
+                e.Cancel = true;
+                cancelSource.Cancel();
             }
         }
 
