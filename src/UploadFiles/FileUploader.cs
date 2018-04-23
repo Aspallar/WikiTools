@@ -40,15 +40,16 @@ namespace UploadFiles
                 loginParams.Add("format", "xml");
                 loginParams.Add("lgname", username);
                 LoginResponse response = await AttemptLoginAsync(loginParams);
-                if (response.Result == ResponseCodes.Success)
-                    return true;
-                if (response.Result != ResponseCodes.NeedToken)
-                    return false;
-                loginParams.Add("lgtoken", response.Token);
-                loginParams.Add("lgpassword", password);
-                response = await AttemptLoginAsync(loginParams);
                 if (response.Result != ResponseCodes.Success)
-                    return false;
+                {
+                    if (response.Result != ResponseCodes.NeedToken)
+                        return false;
+                    loginParams.Add("lgtoken", response.Token);
+                    loginParams.Add("lgpassword", password);
+                    response = await AttemptLoginAsync(loginParams);
+                    if (response.Result != ResponseCodes.Success)
+                        return false;
+                }
                 if (!await IsUserConfirmedAsync(username))
                     return false;
                 _editToken = await GetEditTokenAsync();
