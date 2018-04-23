@@ -72,44 +72,44 @@ namespace UploadFiles
         public void Validate()
         {
             if (string.IsNullOrEmpty(FilePattern) && string.IsNullOrEmpty(List))
-                throw new UploadFilesFatalException($"No files to upload. Specify a file pattern or use the --list switch. {help}");
+                throw new OptionsException($"No files to upload. Specify a file pattern or use the --list switch. {help}");
 
             if (!string.IsNullOrEmpty(FilePattern) && !string.IsNullOrEmpty(List))
-                throw new UploadFilesFatalException($"Specify a file pattern OR --list, not both. {help}");
+                throw new OptionsException($"Specify a file pattern OR --list, not both. {help}");
 
             ValidateSite();
 
             if (!string.IsNullOrEmpty(Content) && NoContent)
-                throw new UploadFilesFatalException($"Cannot specify both --nocontent and --content. {help}");
+                throw new OptionsException($"Cannot specify both --nocontent and --content. {help}");
 
             if (!string.IsNullOrEmpty(List) && !File.Exists(List))
-                throw new UploadFilesFatalException($"--list file not found. {help}");
+                throw new OptionsException($"--list file not found. {help}");
 
             if (!string.IsNullOrEmpty(Content) && !File.Exists(Content))
-                throw new UploadFilesFatalException($"--content file not found. {help}");
+                throw new OptionsException($"--content file not found. {help}");
 
             if (!string.IsNullOrEmpty(List) && !string.IsNullOrEmpty(Fails))
             {
                 string listPath = Path.GetFullPath(List);
                 string failsPath = Path.GetFullPath(Fails);
                 if (listPath == failsPath)
-                    throw new UploadFilesFatalException($"--fails and --list should not specify the same file. {help}");
+                    throw new OptionsException($"--fails and --list should not specify the same file. {help}");
             }
         }
 
         private void ValidateSite()
         {
             if (string.IsNullOrEmpty(Site))
-                throw new UploadFilesFatalException($"No site specified. Use --site or edit the .config file to configure a default site. {help}");
+                throw new OptionsException($"No site specified. Use --site or edit the .config file to configure a default site. {help}");
 
             if (!Uri.IsWellFormedUriString(Site, UriKind.Absolute))
-                throw new UploadFilesFatalException($"Site \"{Site}\" is not a valid url. An example of a valid site url is http://mywiki.wikia.com");
+                throw new OptionsException($"Site \"{Site}\" is not a valid url. An example of a valid site url is http://mywiki.wikia.com");
 
             if (Site.EndsWith("/"))
-                throw new UploadFilesFatalException($"Invalid site {Site}. Don't end the site name with a '/'");
+                throw new OptionsException($"Invalid site {Site}. Don't end the site name with a '/'");
 
             if (!Site.ToUpperInvariant().StartsWith("HTTP"))
-                throw new UploadFilesFatalException($"Site {Site} is invalid. Only http is allowed. e.g http://mywiki.wikia.com");
+                throw new OptionsException($"Site {Site} is invalid. Only http is allowed. e.g http://mywiki.wikia.com");
         }
     }
 }

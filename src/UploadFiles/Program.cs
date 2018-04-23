@@ -25,7 +25,7 @@ namespace UploadFiles
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => Run(options));
             }
-            catch (UploadFilesFatalException ex)
+            catch (OptionsException ex)
             {
                 Console.Error.WriteLine(ex.Message);
             }
