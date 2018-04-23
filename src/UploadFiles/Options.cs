@@ -63,6 +63,12 @@ namespace UploadFiles
             set { _waitTime = value; }
         }
 
+        [Option(HelpText = "Log file")]
+        public string Log { get; set; }
+
+        [Option(HelpText = "Don't color console output")]
+        public bool NoColor { get; set; }
+
         public void Validate()
         {
             if (string.IsNullOrEmpty(FilePattern) && string.IsNullOrEmpty(List))

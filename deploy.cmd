@@ -19,6 +19,7 @@ copy src\CardNames\bin\Release\Cards.json Deploy\.
 copy src\UploadFiles\bin\Release\UploadFiles.exe Deploy\.
 copy src\UploadFiles\bin\Release\UploadFiles.exe.config Deploy\.
 copy src\UploadFiles\bin\Release\WikiToolsShared.dll Deploy\.
+copy src\UploadFiles\bin\Release\log4net.dll Deploy\.
 goto :eof
 
 :wrongfolder
