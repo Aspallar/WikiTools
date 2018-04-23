@@ -29,36 +29,33 @@ namespace UploadFiles
             {
                 Console.Error.WriteLine(ex.Message);
             }
-            catch (HttpRequestException ex)
-            {
-                if (ex.InnerException == null)
-                    Console.Error.WriteLine(ex.Message);
-                else
-                    Console.Error.WriteLine(ex.InnerException.Message);
-            }
-            catch (FileNotFoundException ex)
-            {
-                Console.Error.WriteLine(ex.Message);
-            }
-#if !DEBUG
-            catch(Exception ex)
-            {
-                ShowExceptionMessages(ex);
-            }
-#endif
         }
 
         private static void Run(Options options)
         {
             options.Validate();
+
             Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor);
+
             log.Info($"Uploading to {options.Site}");
             if (options.WaitFiles <= 0 || options.WaitTime <= 0)
                 log.Info("No waiting between uploads");
             else
                 log.Info($"Waiting for {options.WaitTime} seconds every {options.WaitFiles} uploads.");
-            using (cancelSource = new CancellationTokenSource())
-                RunAsync(options).GetAwaiter().GetResult();
+
+#if !DEBUG
+            try
+            {
+#endif
+                using (cancelSource = new CancellationTokenSource())
+                    RunAsync(options).GetAwaiter().GetResult();
+#if !DEBUG
+            }
+            catch (Exception ex)
+            {
+                LogFatalExceptionMessages(ex);
+            }
+#endif
         }
 
         private static async Task RunAsync(Options options)
@@ -88,32 +85,40 @@ namespace UploadFiles
 
         private static async Task<bool> UploadFile(string file, Waiter waiter, FailWriter failWriter, FileUploader uploader, bool force)
         {
-            if (!HasValidFileType(file))
+            try
             {
-                string msg = $" Unsupported file type \"{Path.GetExtension(file)}\".";
-                log.Error($"[{file}]{msg}");
-                failWriter.Write(file, msg);
-                return false;
+                if (!HasValidFileType(file))
+                {
+                    string msg = $" Unsupported file type \"{Path.GetExtension(file)}\".";
+                    log.Error($"[{file}]{msg}");
+                    failWriter.Write(file, msg);
+                    return false;
+                }
+                if (!File.Exists(file))
+                {
+                    string msg = " Not found.";
+                    log.Error($"[{file}]{msg}");
+                    failWriter.Write(file, msg);
+                    return false;
+                }
+                log.Info($"Uploading [{file}]");
+                UploadResponse response = await uploader.UpLoadAsync(file, force);
+                if (response.Result == ResponseCodes.Warning)
+                {
+                    string warningsText = GetWarningsText(response);
+                    log.Warn($"[{file}]{warningsText}");
+                    failWriter.Write(file, warningsText);
+                }
+                else if (response.Result != "Success")
+                {
+                    log.Fatal($"Unexpected response from wiki site while uploading file {file}.\n{response.Xml}");
+                    return true;
+                }
             }
-            if (!File.Exists(file))
+            catch (IOException ex)
             {
-                string msg = " Not found.";
-                log.Error($"[{file}]{msg}");
-                failWriter.Write(file, msg);
-                return false;
-            }
-            log.Info($"Uploading [{file}]");
-            UploadResponse response = await uploader.UpLoadAsync(file, force);
-            if (response.Result == ResponseCodes.Warning)
-            {
-                string warningsText = GetWarningsText(response);
-                log.Warn($"[{file}]{warningsText}");
-                failWriter.Write(file, warningsText);
-            }
-            else if (response.Result != "Success")
-            {
-                log.Fatal($"Unexpected response from wiki site while uploading file {file}.\n{response.Xml}");
-                return true;
+                LogExceptionMessages(ex);
+                failWriter.Write(file, "IO error encountered.");
             }
             await waiter.Wait();
             return false;
@@ -223,11 +228,18 @@ namespace UploadFiles
             }
         }
 
-        private static void ShowExceptionMessages(Exception ex)
+        private static void LogFatalExceptionMessages(Exception ex)
         {
-            Console.Error.WriteLine(ex.Message);
+            log.Fatal(ex.Message);
             if (ex.InnerException != null)
-                ShowExceptionMessages(ex.InnerException);
+                LogFatalExceptionMessages(ex.InnerException);
+        }
+
+        private static void LogExceptionMessages(Exception ex)
+        {
+            log.Error(ex.Message);
+            if (ex.InnerException != null)
+                LogExceptionMessages(ex.InnerException);
         }
 
     }

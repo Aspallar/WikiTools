@@ -10,17 +10,31 @@ namespace UploadFiles
 
         public FailWriter(string fileName, char separator)
         {
-            _separator = separator;
-            if (!string.IsNullOrEmpty(fileName))
-                _writer = new StreamWriter(fileName);
+            try
+            {
+                _separator = separator;
+                if (!string.IsNullOrEmpty(fileName))
+                    _writer = new StreamWriter(fileName);
+            }
+            catch (IOException ex)
+            {
+                throw new FailWriterException("Unable to create file file", ex);
+            }
         }
-
+            
         public void Write(string fileName, string message)
         {
-            if (_writer != null)
+            try
             {
-                _writer.WriteLine(fileName + "|" + message);
-                _writer.Flush();
+                if (_writer != null)
+                {
+                    _writer.WriteLine(fileName + "|" + message);
+                    _writer.Flush();
+                }
+            }
+            catch (IOException ex)
+            {
+                throw new FailWriterException("Error while writing to fail file", ex);
             }
         }
 

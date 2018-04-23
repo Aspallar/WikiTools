@@ -55,6 +55,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="FailWriter.cs" />
+    <Compile Include="FailWriterException.cs" />
     <Compile Include="FileUploader.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="LoginResponse.cs" />
