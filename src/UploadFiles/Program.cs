@@ -160,6 +160,9 @@ namespace UploadFiles
 
         private static bool HasValidFileType(string filename)
         {
+            // Consider: remove this check as it turns out that allowable file
+            //           types are configurable per wiki solet the api
+            //           decide.
             string[] validTypes = { ".png", ".gif", ".jpg",
                 ".jpeg", ".ico", ".pdf", ".svg", ".odt", ".ods",
                 ".odp", ".odg", ".odc", ".odf", ".odi", ".odm",
