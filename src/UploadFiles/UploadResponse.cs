@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using System.Xml;
 
 namespace UploadFiles
@@ -74,6 +75,46 @@ namespace UploadFiles
                     Code = node.Attributes["code"]?.Value,
                     Info = node.Attributes["info"]?.Value,
                 });
+            }
+        }
+
+        public string WarningsText
+        {
+            get
+            {
+                StringBuilder text = new StringBuilder();
+                if (AlreadyExists)
+                {
+                    text.Append(" Already exists.");
+                }
+                if (BadFilename)
+                {
+                    text.Append(" Invalid file name.");
+                }
+                if (IsDuplicate)
+                {
+                    text.Append(" Duplicate of");
+                    foreach (string duplicate in Duplicates)
+                        text.Append($" [{duplicate}]");
+                    text.Append(".");
+                }
+                if (IsDuplicateOfArchive)
+                {
+                    text.Append($" Duplicate of deleted file [{ArchiveDuplicate}].");
+                }
+                if (LargeFile)
+                {
+                    text.Append(" Large file.");
+                }
+                if (UnwantedFileType)
+                {
+                    text.Append(" Unwanted file type.");
+                }
+                if (EmptyFile)
+                {
+                    text.Append(" Empty file.");
+                }
+                return text.ToString();
             }
         }
     }

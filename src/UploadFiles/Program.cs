@@ -28,6 +28,8 @@ namespace UploadFiles
             {
                 Console.Error.WriteLine(ex.Message);
             }
+            if (System.Diagnostics.Debugger.IsAttached)
+                Utils.Pause("Press a key.");
         }
 
         private static void Run(Options options)
@@ -116,7 +118,7 @@ namespace UploadFiles
                 UploadResponse response = await uploader.UpLoadAsync(file, force);
                 if (response.Result == ResponseCodes.Warning)
                 {
-                    string warningsText = GetWarningsText(response);
+                    string warningsText = response.WarningsText;
                     log.Warn($"[{file}]{warningsText}");
                     failWriter.Write(file, warningsText);
                 }
@@ -154,31 +156,6 @@ namespace UploadFiles
             if (string.IsNullOrEmpty(options.Content))
                 return Properties.Settings.Default.DefaultText.Replace("\\n", "\n");
             return File.ReadAllText(options.Content);
-        }
-
-        private static string GetWarningsText(UploadResponse response)
-        {
-            StringBuilder text = new StringBuilder();
-            if (response.AlreadyExists)
-            {
-                text.Append(" Already exists.");
-            }
-            if (response.BadFilename)
-            {
-                text.Append(" Invalid file name.");
-            }
-            if (response.IsDuplicate)
-            {
-                text.Append(" Duplicate of");
-                foreach (string duplicate in response.Duplicates)
-                    text.Append($" [{duplicate}]");
-                text.Append(".");
-            }
-            if (response.IsDuplicateOfArchive)
-            {
-                text.Append($" Duplicate of deleted file [{response.ArchiveDuplicate}].");
-            }
-            return text.ToString();
         }
 
         private static IEnumerable<string> GetFilesToUpload(Options options)
