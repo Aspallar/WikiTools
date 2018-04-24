@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,14 +33,8 @@ namespace UploadFiles
         private static void Run(Options options)
         {
             options.Validate();
-
-            Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor);
-
-            log.Info($"Uploading to {options.Site}");
-            if (options.WaitFiles <= 0 || options.WaitTime <= 0)
-                log.Info("No waiting between uploads");
-            else
-                log.Info($"Waiting for {options.WaitTime} seconds every {options.WaitFiles} uploads.");
+            Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor, options.Debug);
+            LogOptions(options);
 
 #if !DEBUG
             try
@@ -54,8 +47,26 @@ namespace UploadFiles
             catch (Exception ex)
             {
                 LogFatalExceptionMessages(ex);
+                log.Debug(ex.ToString());
             }
 #endif
+        }
+
+        private static void LogOptions(Options options)
+        {
+            log.Info($"Uploading to {options.Site}");
+            if (!string.IsNullOrEmpty(options.FilePattern))
+                log.Info($"Uploading files that match \"{options.FilePattern}\"");
+            if (!string.IsNullOrEmpty(options.List))
+                log.Info($"Uploding files specified in file \"{options.FilePattern}\"");
+            if (options.WaitFiles <= 0 || options.WaitTime <= 0)
+                log.Info("No waiting between uploads");
+            else
+                log.Info($"Waiting for {options.WaitTime} seconds every {options.WaitFiles} uploads.");
+            if (options.Force)
+                log.Info("Forcing upload on warnings (--force specified).");
+            else
+                log.Info("Not forcing upload on warnings (no --force specified).");
         }
 
         private static async Task RunAsync(Options options)
@@ -111,14 +122,26 @@ namespace UploadFiles
                 }
                 else if (response.Result != "Success")
                 {
-                    log.Fatal($"Unexpected response from wiki site while uploading file {file}.\n{response.Xml}");
-                    return true;
+                    if (response.IsError)
+                    {
+                        foreach (ApiError error in response.Errors)
+                        {
+                            log.Error($"[{file}] {error.Code} -> {error.Info}");
+                            failWriter.Write(file, $" ERROR {error.Info}");
+                        }
+                        return false;
+                    }
+                    else
+                    {
+                        log.Fatal($"Unexpected response from wiki site while uploading file [{file}].\n{response.Xml}");
+                        return true;
+                    }
                 }
             }
             catch (IOException ex)
             {
                 LogExceptionMessages(ex);
-                failWriter.Write(file, "IO error encountered.");
+                failWriter.Write(file, "IO error.");
             }
             await waiter.Wait();
             return false;
@@ -137,15 +160,23 @@ namespace UploadFiles
         {
             StringBuilder text = new StringBuilder();
             if (response.AlreadyExists)
+            {
                 text.Append(" Already exists.");
+            }
             if (response.BadFilename)
+            {
                 text.Append(" Invalid file name.");
+            }
             if (response.IsDuplicate)
             {
                 text.Append(" Duplicate of");
                 foreach (string duplicate in response.Duplicates)
                     text.Append($" [{duplicate}]");
                 text.Append(".");
+            }
+            if (response.IsDuplicateOfArchive)
+            {
+                text.Append($" Duplicate of deleted file [{response.ArchiveDuplicate}].");
             }
             return text.ToString();
         }

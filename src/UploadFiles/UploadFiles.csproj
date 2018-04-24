@@ -54,6 +54,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ApiError.cs" />
     <Compile Include="FailWriter.cs" />
     <Compile Include="FailWriterException.cs" />
     <Compile Include="FileUploader.cs" />

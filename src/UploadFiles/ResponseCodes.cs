@@ -11,5 +11,6 @@ namespace UploadFiles
         public const string Success = "Success";
         public const string NeedToken = "NeedToken";
         public const string Warning = "Warning";
+        public const string NoResult = "NoResult";
     }
 }

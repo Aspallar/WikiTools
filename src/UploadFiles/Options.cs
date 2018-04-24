@@ -69,6 +69,9 @@ namespace UploadFiles
         [Option(HelpText = "Don't color console output")]
         public bool NoColor { get; set; }
 
+        [Option(Hidden = true, HelpText = "Debug level logging.")]
+        public bool Debug { get; set; }
+
         public void Validate()
         {
             if (string.IsNullOrEmpty(FilePattern) && string.IsNullOrEmpty(List))

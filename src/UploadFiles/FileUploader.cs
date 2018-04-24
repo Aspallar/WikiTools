@@ -1,4 +1,5 @@
-﻿using System;
+﻿using log4net;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -11,6 +12,9 @@ namespace UploadFiles
 {
     internal class FileUploader : IDisposable
     {
+
+        private static ILog log = LogManager.GetLogger(typeof(FileUploader));
+
         private Uri _api;
         private string _editToken;
         private string _defaultText;
@@ -100,6 +104,7 @@ namespace UploadFiles
                     using (HttpResponseMessage response = await _client.PostAsync(_api, uploadParams))
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
+                        log.Debug(responseContent);
                         return new UploadResponse(responseContent);
                     }
                 }
@@ -157,6 +162,7 @@ namespace UploadFiles
         private static async Task<XmlDocument> GetXml(HttpContent content)
         {
             string response = await content.ReadAsStringAsync();
+            log.Debug(response);
             return GetXmlDocument(response);
         }
 

@@ -8,7 +8,7 @@ namespace UploadFiles
 {
     internal static class Logging
     {
-        public static void Configure(string logConfigFileName, string logFilename, bool colored)
+        public static void Configure(string logConfigFileName, string logFilename, bool colored, bool debug)
         {
             if (File.Exists(logConfigFileName))
             {
@@ -19,17 +19,17 @@ namespace UploadFiles
             }
             else
             {
-                ConfigureDefaultLogger(logFilename, colored);
+                ConfigureDefaultLogger(logFilename, colored, debug);
             }
         }
 
-        private static void ConfigureDefaultLogger(string logFileName, bool colored)
+        private static void ConfigureDefaultLogger(string logFileName, bool colored, bool debug)
         {
 
             var layout = new PatternLayout("%d %-5level %message%newline");
             layout.ActivateOptions();
 
-            IAppender consoleAppender = GetDefaultConsoleAppender(colored, layout);
+            IAppender consoleAppender = GetDefaultConsoleAppender(colored, layout, debug);
             
             if (string.IsNullOrEmpty(logFileName))
             {
@@ -55,12 +55,12 @@ namespace UploadFiles
             return fileAppender;
         }
 
-        private static IAppender GetDefaultConsoleAppender(bool colored, PatternLayout layout)
+        private static IAppender GetDefaultConsoleAppender(bool colored, PatternLayout layout, bool debug)
         {
             IAppender consoleAppender;
             if (colored)
             {
-                ColoredConsoleAppender appender = CreateColoredConsoleAppender(layout);
+                ColoredConsoleAppender appender = CreateColoredConsoleAppender(layout, debug);
                 appender.ActivateOptions();
                 consoleAppender = appender;
             }
@@ -69,7 +69,7 @@ namespace UploadFiles
                 var appender = new ConsoleAppender
                 {
                     Layout = layout,
-                    Threshold = Level.Info,
+                    Threshold = debug ? Level.Debug : Level.Info,
                 };
                 appender.ActivateOptions();
                 consoleAppender = appender;
@@ -79,14 +79,21 @@ namespace UploadFiles
         }
 
 
-        private static ColoredConsoleAppender CreateColoredConsoleAppender(PatternLayout layout)
+        private static ColoredConsoleAppender CreateColoredConsoleAppender(PatternLayout layout, bool debug)
         {
             var appender = new ColoredConsoleAppender
             {
                 Layout = layout,
-                Threshold = Level.Info,
-
+                Threshold = debug ? Level.Debug : Level.Info,
             };
+            if (debug)
+            {
+                appender.AddMapping(new ColoredConsoleAppender.LevelColors
+                {
+                    Level = Level.Debug,
+                    ForeColor = ColoredConsoleAppender.Colors.Cyan
+                });
+            }
             appender.AddMapping(new ColoredConsoleAppender.LevelColors
             {
                 Level = Level.Info,
