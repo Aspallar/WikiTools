@@ -84,9 +84,9 @@ namespace UploadFiles
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
-                IEnumerable<string> files = GetFilesToUpload(options);
+                FileSource fileSource = new FileSource(options.FilePattern, options.List, filenameSeparator);
                 Console.CancelKeyPress += Console_CancelKeyPress;
-                foreach (string file in files)
+                foreach (string file in fileSource.Files)
                 {
                     if (cancelSource.IsCancellationRequested)
                         break;
@@ -156,44 +156,6 @@ namespace UploadFiles
             if (string.IsNullOrEmpty(options.Content))
                 return Properties.Settings.Default.DefaultText.Replace("\\n", "\n");
             return File.ReadAllText(options.Content);
-        }
-
-        private static IEnumerable<string> GetFilesToUpload(Options options)
-        {
-            if (!string.IsNullOrEmpty(options.List))
-            {
-                return GetListFileFilenames(options.List);
-            }
-
-            try
-            {
-                string pattern = Path.GetFileName(options.FilePattern);
-                string folder = Path.GetDirectoryName(options.FilePattern);
-                if (string.IsNullOrEmpty(folder))
-                    folder = ".";
-                return Directory.EnumerateFiles(folder, pattern);
-            }
-            catch (DirectoryNotFoundException)
-            {
-                return Enumerable.Empty<string>();
-            }
-        }
-
-        private static IEnumerable<string> GetListFileFilenames(string fileName)
-        {
-            using (var reader = new StreamReader(fileName))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    int pos = line.IndexOf(filenameSeparator);
-                    if (pos != -1)
-                        line = line.Substring(0, pos);
-                    string trimmedLine = line.Trim();
-                    if (trimmedLine.Length > 0)
-                        yield return trimmedLine;
-                }
-            }
         }
 
         private static bool HasValidFileType(string filename)

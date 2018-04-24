@@ -57,6 +57,7 @@
     <Compile Include="ApiError.cs" />
     <Compile Include="FailWriter.cs" />
     <Compile Include="FailWriterException.cs" />
+    <Compile Include="FileSource.cs" />
     <Compile Include="FileUploader.cs" />
     <Compile Include="Logging.cs" />
     <Compile Include="LoginResponse.cs" />
