@@ -60,7 +60,7 @@ namespace UploadFiles
             if (!string.IsNullOrEmpty(options.FilePattern))
                 log.Info($"Uploading files that match \"{options.FilePattern}\"");
             if (!string.IsNullOrEmpty(options.List))
-                log.Info($"Uploding files specified in file \"{options.FilePattern}\"");
+                log.Info($"Uploading files specified in file \"{options.List}\"");
             if (options.WaitFiles <= 0 || options.WaitTime <= 0)
                 log.Info("No waiting between uploads");
             else
