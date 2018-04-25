@@ -4,19 +4,17 @@ using System.Linq;
 
 namespace UploadFiles
 {
-    internal class FileSource
+    internal static class FileSource
     {
-        public IEnumerable<string> Files { get; private set; }
-
-        public FileSource(string pattern, string filename, char filenameSeparator)
+        public static IEnumerable<string> GetFiles(string pattern, string filename, char filenameSeparator)
         {
             if (!string.IsNullOrEmpty(filename))
             {
-                Files = GetListFileFilenames(filename, filenameSeparator);
+                return GetListFileFilenames(filename, filenameSeparator);
             }
             else
             {
-                Files = GetPatternFileNames(pattern);
+                return GetPatternFileNames(pattern);
             }
         }
 
@@ -27,7 +25,8 @@ namespace UploadFiles
                 string folder = Path.GetDirectoryName(pattern);
                 if (string.IsNullOrEmpty(folder))
                     folder = ".";
-                return Directory.EnumerateFiles(folder, pattern);
+                string patternPart = Path.GetFileName(pattern);
+                return Directory.EnumerateFiles(folder, patternPart);
             }
             catch (DirectoryNotFoundException)
             {

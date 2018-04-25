@@ -9,16 +9,18 @@ namespace UploadFiles
         private int _waitEvery;
         private int _waitTime;
         private int _count;
+        private int _delay;
         private CancellationToken _cancellationToken;
         private ILog _log;
 
-        public Waiter(int waitEvery, int waitTimeInSeconds, CancellationToken token, ILog log)
+        public Waiter(int waitEvery, int waitTimeInSeconds, int delay, CancellationToken token, ILog log)
         {
             _log = log;
             _waitEvery = waitEvery;
             _waitTime = waitTimeInSeconds;
             _count = 0;
             _cancellationToken = token;
+            _delay = delay;
         }
 
         public async Task Wait()
@@ -27,7 +29,7 @@ namespace UploadFiles
             {
                 if (_waitEvery <= 0 || _waitTime <= 0 || ++_count < _waitEvery)
                 {
-                    await Task.Delay(1000, _cancellationToken);
+                    await Task.Delay(_delay, _cancellationToken);
                     return;
                 }
                 _count = 0;

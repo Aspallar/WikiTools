@@ -80,8 +80,8 @@ namespace UploadFiles
 
         private static async Task RunAsync(Options options)
         {
-            var waiter = new Waiter(options.WaitFiles, options.WaitTime, cancelSource.Token, log);
-            using (var uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment))
+            var waiter = new Waiter(options.WaitFiles, options.WaitTime, options.Delay, cancelSource.Token, log);
+            using (var uploader = new FileUploader(options.Site, GetPageText(options), options.Category, options.Comment, options.Timeout))
             using (var failWriter = new FailWriter(options.Fails, filenameSeparator))
             {
                 string username = GetUsername(options);
@@ -91,9 +91,8 @@ namespace UploadFiles
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
-                FileSource fileSource = new FileSource(options.FilePattern, options.List, filenameSeparator);
                 Console.CancelKeyPress += Console_CancelKeyPress;
-                foreach (string file in fileSource.Files)
+                foreach (string file in FileSource.GetFiles(options.FilePattern, options.List, filenameSeparator))
                 {
                     if (cancelSource.IsCancellationRequested)
                         break;
@@ -173,7 +172,7 @@ namespace UploadFiles
         private static bool HasValidFileType(string filename)
         {
             // Consider: remove this check as it turns out that allowable file
-            //           types are configurable per wiki solet the api
+            //           types are configurable per wiki so let the api
             //           decide.
             string[] validTypes = { ".png", ".gif", ".jpg",
                 ".jpeg", ".ico", ".pdf", ".svg", ".odt", ".ods",

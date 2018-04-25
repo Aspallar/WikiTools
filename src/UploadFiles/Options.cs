@@ -11,6 +11,8 @@ namespace UploadFiles
         private string _site;
         private int? _waitFiles;
         private int? _waitTime;
+        private int? _timeout;
+        private int? _delay;
 
         [Value(0, HelpText = "File pattern for files to upload e.g. images\\*.png")]
         public string FilePattern { get; set; }
@@ -69,7 +71,21 @@ namespace UploadFiles
         [Option(HelpText = "Don't color console output")]
         public bool NoColor { get; set; }
 
-        [Option(Hidden = true, HelpText = "Debug level logging.")]
+        [Option(HelpText = "Timeout, in seconds, for web requests.")]
+        public int Timeout
+        {
+            get { return _timeout ?? Properties.Settings.Default.TimeOut; }
+            set { _timeout = value; }
+        }
+
+        [Option(Hidden = true)]
+        public int Delay
+        {
+            get { return Math.Max(_delay ?? Properties.Settings.Default.Delay, 0); }
+            set { _delay = value; }
+        }
+
+        [Option(Hidden = true)]
         public bool Debug { get; set; }
 
         public void Validate()

@@ -21,7 +21,7 @@ namespace UploadFiles
         private HttpClient _client;
         private string _comment;
 
-        public FileUploader(string site, string defaultText, string category, string comment)
+        public FileUploader(string site, string defaultText, string category, string comment, int timeoutSeconds)
         {
             _defaultText = defaultText == null ? "" : defaultText;
             if (!string.IsNullOrEmpty(category))
@@ -33,6 +33,8 @@ namespace UploadFiles
             handler.CookieContainer = new CookieContainer();
             _client = new HttpClient(handler);
             _client.DefaultRequestHeaders.Add("User-Agent", UserAgent);
+            if (timeoutSeconds > 0)
+                _client.Timeout = new TimeSpan(0, 0, timeoutSeconds);
         }
 
         public async Task<bool> LoginAsync(string username, string password)
