@@ -15,7 +15,7 @@ namespace UploadFiles
     {
         private static ILog log = LogManager.GetLogger(typeof(Program));
         private const char filenameSeparator = '|';
-        static CancellationTokenSource cancelSource;
+        private static CancellationTokenSource cancelSource;
 
         static void Main(string[] args)
         {
@@ -35,6 +35,7 @@ namespace UploadFiles
         private static void Run(Options options)
         {
             options.Validate();
+            OpeningMessage();
             Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor, options.Debug);
             LogOptions(options);
 
@@ -52,6 +53,12 @@ namespace UploadFiles
                 log.Debug(ex.ToString());
             }
 #endif
+        }
+
+        private static void OpeningMessage()
+        {
+            Console.Error.WriteLine("Press Ctrl-C to stop uploads once current upload completes.");
+            Console.Error.WriteLine("Press Ctrl-Break to stop uploads immediately.");
         }
 
         private static void LogOptions(Options options)
@@ -145,6 +152,11 @@ namespace UploadFiles
                 LogExceptionMessages(ex);
                 failWriter.Write(file, "IO error.");
             }
+            catch (TaskCanceledException)
+            {
+                log.Error($"[{file}] Upload timed out.");
+                failWriter.Write(file, "Upload timed out.");
+            }
             await waiter.Wait();
             return false;
         }
@@ -195,7 +207,7 @@ namespace UploadFiles
         {
             if (e.SpecialKey == ConsoleSpecialKey.ControlC)
             {
-                log.Warn("Ctrl-C Pressed. Uploads will stop after current upload finishes.");
+                log.Warn("Ctrl-C Pressed. Uploads will stop after current upload, if any, finishes.");
                 e.Cancel = true;
                 cancelSource.Cancel();
             }

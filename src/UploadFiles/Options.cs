@@ -15,7 +15,7 @@ namespace UploadFiles
         [Value(0, HelpText = "File pattern for files to upload e.g. images\\*.png")]
         public string FilePattern { get; set; }
 
-        [Option(HelpText = "Wikia site. Defaults to setting in config file.")]
+        [Option(HelpText = "Wikia site (e.g. http://mywiki.wikia.com). Defaults to setting in config file.")]
         public string Site
         {
             get { return _site ?? Properties.Settings.Default.DefaultSite; }

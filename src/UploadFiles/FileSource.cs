@@ -20,7 +20,7 @@ namespace UploadFiles
             }
         }
 
-        private IEnumerable<string> GetPatternFileNames(string pattern)
+        private static IEnumerable<string> GetPatternFileNames(string pattern)
         {
             try
             {

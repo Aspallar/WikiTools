@@ -37,19 +37,19 @@ namespace UploadFiles
             }
             else
             {
-                IAppender fileAppender = GetDefaultFileAppender(logFileName, layout);
+                IAppender fileAppender = GetDefaultFileAppender(logFileName, layout, debug);
                 BasicConfigurator.Configure(consoleAppender, fileAppender);
             }
         }
 
-        private static FileAppender GetDefaultFileAppender(string logFileName, PatternLayout layout)
+        private static FileAppender GetDefaultFileAppender(string logFileName, PatternLayout layout, bool debug)
         {
             var fileAppender = new FileAppender
             {
                 Layout = layout,
                 AppendToFile = true,
                 File = logFileName,
-                Threshold = Level.Info,
+                Threshold = debug ? Level.Debug : Level.Info,
             };
             fileAppender.ActivateOptions();
             return fileAppender;
