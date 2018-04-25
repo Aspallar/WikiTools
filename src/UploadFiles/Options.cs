@@ -78,6 +78,9 @@ namespace UploadFiles
             set { _timeout = value; }
         }
 
+        [Option("no-filetype-check", HelpText = "If specified UploadFiles will not check permitted types before sending file.")]
+        public bool NoFileTypeCheck { get; set; }
+
         [Option(Hidden = true)]
         public int Delay
         {

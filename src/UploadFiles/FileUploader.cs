@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -20,6 +22,7 @@ namespace UploadFiles
         private string _defaultText;
         private HttpClient _client;
         private string _comment;
+        private List<string> _permittedTypes;
 
         public FileUploader(string site, string defaultText, string category, string comment, int timeoutSeconds)
         {
@@ -37,7 +40,7 @@ namespace UploadFiles
                 _client.Timeout = new TimeSpan(0, 0, timeoutSeconds);
         }
 
-        public async Task<bool> LoginAsync(string username, string password)
+        public async Task<bool> LoginAsync(string username, string password, bool allFilesPermitted)
         {
             try
             {
@@ -58,13 +61,27 @@ namespace UploadFiles
                 }
                 if (!await IsUserConfirmedAsync(username))
                     return false;
+                if (!await IsAuthorizedForUploadFiles(username))
+                    return false;
                 _editToken = await GetEditTokenAsync();
-                return !string.IsNullOrEmpty(_editToken);
+                if (string.IsNullOrEmpty(_editToken))
+                    return false;
+                if (!allFilesPermitted)
+                    await GetPermittedTypes();
+                return true;
             }
             catch (XmlException)
             {
                 return false;
             }
+        }
+
+        public bool IsPermittedFile(string filePath)
+        {
+            if (_permittedTypes == null)
+                return true;
+            string extension = Path.GetExtension(filePath).ToLowerInvariant();
+            return _permittedTypes.Contains(extension);
         }
 
         public async Task<UploadResponse> UpLoadAsync(string file, bool force = false)
@@ -134,6 +151,53 @@ namespace UploadFiles
                 if (node == null)
                     return null;
                 return node?.Attributes["edittoken"]?.Value;
+            }
+        }
+
+        private async Task GetPermittedTypes()
+        {
+            string url = _api.Scheme + "://" + _api.Host + "/wiki/Special:Upload";
+            using (HttpResponseMessage response = await _client.GetAsync(url))
+            {
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    Match permittedDiv = Regex.Match(content, @"<div id=""mw-upload-permitted"">\s*<p>\s*Permitted file types:\s*([^<]+)");
+                    if (permittedDiv.Success)
+                    {
+                        log.Debug($"Found permitted types: {permittedDiv.Value}");
+                        string[] types = permittedDiv.Groups[1].Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                        if (types.Length > 0)
+                        {
+                            _permittedTypes = new List<string>();
+                            foreach (string type in types)
+                            {
+                                string trimmed = type.Trim();
+                                _permittedTypes.Add("." + trimmed.Substring(0, trimmed.Length - 1));
+                            }
+                        }
+
+                        else log.Debug("Permitted types was empty.");
+                    }
+                    else log.Debug("No match for permitted types");
+                }
+                else log.Debug("Special:Upload page not found, no permitted types");
+            }
+        }
+
+        private async Task<bool> IsAuthorizedForUploadFiles(string username)
+        {
+            string url = _api.Scheme + "://" + _api.Host + "/wiki/MediaWiki:UploadFilesUsers.css?action=raw";
+            using (HttpResponseMessage response = await _client.GetAsync(url))
+            {
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string content = await response.Content.ReadAsStringAsync();
+                    return  content.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim().ToUpperInvariant()).Contains(username.ToUpperInvariant());
+                }
+                log.Debug("No authorization page found.");
+                return false;
             }
         }
 

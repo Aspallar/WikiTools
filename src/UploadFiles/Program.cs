@@ -86,7 +86,7 @@ namespace UploadFiles
             {
                 string username = GetUsername(options);
                 string password = GetPassword(options);
-                if (!await uploader.LoginAsync(username, password))
+                if (!await uploader.LoginAsync(username, password, options.NoFileTypeCheck))
                 {
                     Console.Error.WriteLine("Unable to log in.");
                     return;
@@ -106,7 +106,7 @@ namespace UploadFiles
         {
             try
             {
-                if (!HasValidFileType(file))
+                if (!uploader.IsPermittedFile(file))
                 {
                     string msg = $" Unsupported file type \"{Path.GetExtension(file)}\".";
                     log.Error($"[{file}]{msg}");
@@ -167,20 +167,6 @@ namespace UploadFiles
             if (string.IsNullOrEmpty(options.Content))
                 return Properties.Settings.Default.DefaultText.Replace("\\n", "\n");
             return File.ReadAllText(options.Content);
-        }
-
-        private static bool HasValidFileType(string filename)
-        {
-            // Consider: remove this check as it turns out that allowable file
-            //           types are configurable per wiki so let the api
-            //           decide.
-            string[] validTypes = { ".png", ".gif", ".jpg",
-                ".jpeg", ".ico", ".pdf", ".svg", ".odt", ".ods",
-                ".odp", ".odg", ".odc", ".odf", ".odi", ".odm",
-                ".ogg", ".ogv", ".oga" };
-
-            string extension = Path.GetExtension(filename).ToLowerInvariant();
-            return validTypes.Contains(extension);
         }
 
         private static string GetPassword(Options options)
