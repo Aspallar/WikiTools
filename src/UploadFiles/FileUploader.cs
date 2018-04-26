@@ -59,16 +59,20 @@ namespace UploadFiles
                     if (response.Result != ResponseCodes.Success)
                         return false;
                 }
-                if (!await IsUserConfirmedAsync(username))
+
+                Task<bool> userConfirmed = IsUserConfirmedAsync(username);
+                Task<bool> authorized = IsAuthorizedForUploadFilesAsync(username);
+                if (allFilesPermitted)
+                    Task.WaitAll(userConfirmed, authorized);
+                else
+                    Task.WaitAll(userConfirmed, authorized, GetPermittedTypes());
+
+                if (!userConfirmed.Result || !authorized.Result)
                     return false;
-                if (!await IsAuthorizedForUploadFiles(username))
-                    return false;
+
+                // must do edittoken last, otherwise it will be invalid
                 _editToken = await GetEditTokenAsync();
-                if (string.IsNullOrEmpty(_editToken))
-                    return false;
-                if (!allFilesPermitted)
-                    await GetPermittedTypes();
-                return true;
+                return !string.IsNullOrEmpty(_editToken);
             }
             catch (XmlException)
             {
@@ -185,7 +189,7 @@ namespace UploadFiles
             }
         }
 
-        private async Task<bool> IsAuthorizedForUploadFiles(string username)
+        private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
             string url = _api.Scheme + "://" + _api.Host + "/wiki/MediaWiki:UploadFilesUsers.css?action=raw";
             using (HttpResponseMessage response = await _client.GetAsync(url))

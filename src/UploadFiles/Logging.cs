@@ -102,7 +102,7 @@ namespace UploadFiles
             appender.AddMapping(new ColoredConsoleAppender.LevelColors
             {
                 Level = Level.Warn,
-                ForeColor = ColoredConsoleAppender.Colors.Yellow
+                ForeColor = ColoredConsoleAppender.Colors.Yellow | ColoredConsoleAppender.Colors.HighIntensity
             });
             appender.AddMapping(new ColoredConsoleAppender.LevelColors
             {
