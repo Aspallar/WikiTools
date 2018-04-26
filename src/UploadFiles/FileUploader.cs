@@ -165,7 +165,7 @@ namespace UploadFiles
 
         private async Task GetPermittedTypes()
         {
-            string url = _api.Scheme + "://" + _api.Host + "/wiki/Special:Upload";
+            string url = _api.Scheme + "://" + _api.Authority + "/wiki/Special:Upload";
             using (HttpResponseMessage response = await _client.GetAsync(url))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -185,7 +185,6 @@ namespace UploadFiles
                                 _permittedTypes.Add("." + trimmed.Substring(0, trimmed.Length - 1));
                             }
                         }
-
                         else log.Debug("Permitted types was empty.");
                     }
                     else log.Debug("No match for permitted types");
@@ -196,7 +195,7 @@ namespace UploadFiles
 
         private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
-            string url = _api.Scheme + "://" + _api.Host + "/wiki/MediaWiki:UploadFilesUsers.css?action=raw";
+            string url = _api.Scheme + "://" + _api.Authority + "/wiki/MediaWiki:UploadFilesUsers.css?action=raw";
             using (HttpResponseMessage response = await _client.GetAsync(url))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
