@@ -78,6 +78,11 @@ namespace UploadFiles
             {
                 return false;
             }
+            catch (AggregateException ex)
+            {
+                ex.Handle(x => x is XmlException);
+                return false;
+            }
         }
 
         public bool IsPermittedFile(string filePath)
