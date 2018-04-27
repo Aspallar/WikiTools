@@ -70,9 +70,9 @@ namespace UploadFilesTestServer
             }
             else
             {
-                if (request.RawUrl.IndexOf("query&list=users&usprop=groups") != -1)
+                if (request.RawUrl.IndexOf("list=users&usprop=groups&ususers") != -1)
                     reply = "<?xml version=\"1.0\"?><api><query><users><user><groups><g>autoconfirmed</g></groups></user></users></query></api>";
-                else if (request.RawUrl.IndexOf("action=query&prop=info&intoken=edit&titles=Foo") != -1)
+                else if (request.RawUrl.IndexOf("&prop=info&intoken=edit&titles=Foo") != -1)
                     reply = "<?xml version=\"1.0\"?><api><query><pages><page edittoken=\"+foobar\"></page></pages></query></api>";
                 else if (request.RawUrl.IndexOf("MediaWiki:UploadFilesUsers") != -1)
                     reply = "a\nb\nc\nfoo\nbar\n";

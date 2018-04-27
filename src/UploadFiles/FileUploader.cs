@@ -17,7 +17,7 @@ namespace UploadFiles
 
         private static ILog log = LogManager.GetLogger(typeof(FileUploader));
 
-        private Uri _api;
+        private WikiaUri _wiki;
         private string _editToken;
         private string _defaultText;
         private HttpClient _client;
@@ -30,7 +30,7 @@ namespace UploadFiles
             if (!string.IsNullOrEmpty(category))
                 _defaultText += "\n[[Category:" + category + "]]";
             _comment = comment == null ? "" : comment;
-            _api = new Uri(site + "/api.php");
+            _wiki = new WikiaUri(site);
 
             HttpClientHandler handler = new HttpClientHandler();
             handler.CookieContainer = new CookieContainer();
@@ -129,7 +129,7 @@ namespace UploadFiles
                     }
                     uploadParams.Add(streamContent, "file", filename);
 
-                    using (HttpResponseMessage response = await _client.PostAsync(_api, uploadParams))
+                    using (HttpResponseMessage response = await _client.PostAsync(_wiki, uploadParams))
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
                         log.Debug(responseContent);
@@ -141,8 +141,8 @@ namespace UploadFiles
 
         private async Task<bool> IsUserConfirmedAsync(string username)
         {
-            string url = _api.OriginalString + "?action=query&list=users&usprop=groups&format=xml&ususers=" + username;
-            using (HttpResponseMessage response = await _client.GetAsync(url))
+            Uri uri = _wiki.ApiQuery("list=users&usprop=groups&ususers=" + username);
+            using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 XmlDocument xml = await GetXml(response.Content);
                 XmlNode node = xml.SelectSingleNode("/api/query/users/user/groups/g[.=\"autoconfirmed\"]");
@@ -152,8 +152,8 @@ namespace UploadFiles
 
         private async Task<string> GetEditTokenAsync()
         {
-            string url = _api.OriginalString + "?action=query&prop=info&intoken=edit&titles=Foo&format=xml&indexpageids=1";
-            using (HttpResponseMessage response = await _client.GetAsync(url))
+            Uri uri = _wiki.ApiQuery("prop=info&intoken=edit&titles=Foo&indexpageids=1");
+            using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 XmlDocument xml = await GetXml(response.Content);
                 XmlNode node = xml.SelectSingleNode("/api/query/pages/page");
@@ -165,8 +165,7 @@ namespace UploadFiles
 
         private async Task GetPermittedTypes()
         {
-            string url = _api.Scheme + "://" + _api.Authority + "/wiki/Special:Upload";
-            using (HttpResponseMessage response = await _client.GetAsync(url))
+            using (HttpResponseMessage response = await _client.GetAsync(_wiki.Article("Special:Upload")))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -195,8 +194,7 @@ namespace UploadFiles
 
         private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
-            string url = _api.Scheme + "://" + _api.Authority + "/wiki/MediaWiki:UploadFilesUsers.css?action=raw";
-            using (HttpResponseMessage response = await _client.GetAsync(url))
+            using (HttpResponseMessage response = await _client.GetAsync(_wiki.RawArticle("MediaWiki:UploadFilesUsers")))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -213,7 +211,7 @@ namespace UploadFiles
         {
             using (var formParams = new FormUrlEncodedContent(loginParams))
             {
-                using (HttpResponseMessage response = await _client.PostAsync(_api, formParams))
+                using (HttpResponseMessage response = await _client.PostAsync(_wiki, formParams))
                 {
                     XmlDocument xml = await GetXml(response.Content);
                     XmlNode login = xml.SelectSingleNode("/api/login");

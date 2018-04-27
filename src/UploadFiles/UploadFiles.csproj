@@ -55,6 +55,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ApiError.cs" />
+    <Compile Include="WikiaUri.cs" />
     <Compile Include="FailWriter.cs" />
     <Compile Include="FailWriterException.cs" />
     <Compile Include="FileSource.cs" />
