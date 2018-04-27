@@ -39,23 +39,14 @@ namespace UploadFiles
                 {
                     XmlNode warnings = upload.SelectSingleNode("warnings");
 
-                    if (warnings.Attributes["exists"] != null)
-                        AlreadyExists = true;
-
-                    if (warnings.Attributes["badfilename"] != null)
-                        BadFilename = true;
+                    AlreadyExists = warnings.Attributes["exists"] != null;
+                    BadFilename =  warnings.Attributes["badfilename"] != null;
+                    UnwantedFileType = warnings.Attributes["filetype-unwanted-type"] != null;
+                    LargeFile = warnings.Attributes["large-file"] != null;
+                    EmptyFile = warnings.Attributes["emptyfile"] != null;
 
                     if (warnings.Attributes["duplicate-archive"] != null)
                         ArchiveDuplicate = warnings.Attributes["duplicate-archive"].Value;
-
-                    if (warnings.Attributes["filetype-unwanted-type"] != null)
-                        UnwantedFileType = true;
-
-                    if (warnings.Attributes["large-file"] != null)
-                        LargeFile = true;
-
-                    if (warnings.Attributes["emptyfile"] != null)
-                        EmptyFile = true;
 
                     XmlNodeList duplicates = warnings.SelectNodes("duplicate/duplicate");
                     foreach (XmlNode node in duplicates)

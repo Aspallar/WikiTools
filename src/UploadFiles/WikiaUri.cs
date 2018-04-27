@@ -6,23 +6,30 @@ using System.Threading.Tasks;
 
 namespace UploadFiles
 {
-    internal class WikiaUri : Uri
+    internal class WikiaUri
     {
-        public WikiaUri(string wikiSite) : base(wikiSite) { }
+        public Uri Api { get; private set; }
+        public Uri Wiki { get; private set; }
+
+        public WikiaUri(string wikiSite)
+        {
+            Api = new Uri(wikiSite + "/api.php");
+            Wiki = new Uri(wikiSite + "/wiki");
+        }
 
         public Uri ApiQuery(string parameters)
         {
-            return new Uri(this, "api.php?action=query&format=xml&" + parameters);
+            return new Uri(Api, "?action=query&format=xml&" + parameters);
         }
 
         public Uri Article(string title)
         {
-            return new Uri(this, "wiki/" + title);
+            return new Uri(Wiki, "/" + title);
         }
 
         public Uri RawArticle(string title)
         {
-            return new Uri(this, "wiki/" + title + "?action=raw");
+            return new Uri(Wiki, "/" + title + "?action=raw");
         }
     }
 }

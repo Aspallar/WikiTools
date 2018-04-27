@@ -105,31 +105,22 @@ namespace UploadFiles
             using (FileStream fs = File.OpenRead(file))
             using (var streamContent = new StreamContent(fs))
             {
-                streamContent.Headers.Add("Content-Type", "application/octet-stream");
-                streamContent.Headers.Add("Content-Disposition", $"form-data; name=\"file\"; filename=\"{filename}\"");
-                actionContent.Headers.Add("Content-Disposition", "form-data; name=\"action\"");
-                fileNameContent.Headers.Add("Content-Disposition", "form-data; name=\"filename\"");
-                editTokenContent.Headers.Add("Content-Disposition", "form-data; name=\"token\"");
-                textContent.Headers.Add("Content-Disposition", "form-data; name=\"text\"");
-                commentContent.Headers.Add("Content-Disposition", "form-data; name=\"comment\"");
-                formatContent.Headers.Add("Content-Disposition", "form-data; name=\"format\"");
-                using (var uploadParams = new MultipartFormDataContent())
+                using (var uploadData = new MultipartFormDataContent())
                 {
-                    uploadParams.Add(actionContent, "action");
-                    uploadParams.Add(fileNameContent, "filename");
-                    uploadParams.Add(editTokenContent, "token");
-                    uploadParams.Add(formatContent, "format");
-                    uploadParams.Add(textContent, "text");
-                    uploadParams.Add(commentContent, "comment");
+                    uploadData.Add(actionContent, "action");
+                    uploadData.Add(fileNameContent, "filename");
+                    uploadData.Add(editTokenContent, "token");
+                    uploadData.Add(formatContent, "format");
+                    uploadData.Add(textContent, "text");
+                    uploadData.Add(commentContent, "comment");
                     if (force)
                     {
                         var forceContent = new StringContent("1");
-                        forceContent.Headers.Add("Content-Disposition", "form-data; name=\"ignorewarnings\"");
-                        uploadParams.Add(forceContent, "ignorewarnings");
+                        uploadData.Add(forceContent, "ignorewarnings");
                     }
-                    uploadParams.Add(streamContent, "file", filename);
+                    uploadData.Add(streamContent, "file", filename);
 
-                    using (HttpResponseMessage response = await _client.PostAsync(_wiki, uploadParams))
+                    using (HttpResponseMessage response = await _client.PostAsync(_wiki.Api, uploadData))
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
                         log.Debug(responseContent);
@@ -157,15 +148,14 @@ namespace UploadFiles
             {
                 XmlDocument xml = await GetXml(response.Content);
                 XmlNode node = xml.SelectSingleNode("/api/query/pages/page");
-                if (node == null)
-                    return null;
                 return node?.Attributes["edittoken"]?.Value;
             }
         }
 
         private async Task GetPermittedTypes()
         {
-            using (HttpResponseMessage response = await _client.GetAsync(_wiki.Article("Special:Upload")))
+            Uri uri = _wiki.Article("Special:Upload");
+            using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -194,7 +184,8 @@ namespace UploadFiles
 
         private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
-            using (HttpResponseMessage response = await _client.GetAsync(_wiki.RawArticle("MediaWiki:UploadFilesUsers")))
+            Uri uri = _wiki.RawArticle("MediaWiki:UploadFilesUsers.css");
+            using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -211,7 +202,7 @@ namespace UploadFiles
         {
             using (var formParams = new FormUrlEncodedContent(loginParams))
             {
-                using (HttpResponseMessage response = await _client.PostAsync(_wiki, formParams))
+                using (HttpResponseMessage response = await _client.PostAsync(_wiki.Api, formParams))
                 {
                     XmlDocument xml = await GetXml(response.Content);
                     XmlNode login = xml.SelectSingleNode("/api/login");
