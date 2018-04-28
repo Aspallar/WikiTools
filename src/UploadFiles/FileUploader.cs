@@ -17,7 +17,7 @@ namespace UploadFiles
 
         private static ILog log = LogManager.GetLogger(typeof(FileUploader));
 
-        private WikiaUri _wiki;
+        private ApiUri _api;
         private string _editToken;
         private string _defaultText;
         private HttpClient _client;
@@ -30,7 +30,7 @@ namespace UploadFiles
             if (!string.IsNullOrEmpty(category))
                 _defaultText += "\n[[Category:" + category + "]]";
             _comment = comment == null ? "" : comment;
-            _wiki = new WikiaUri(site);
+            _api = new ApiUri(site);
 
             HttpClientHandler handler = new HttpClientHandler();
             handler.CookieContainer = new CookieContainer();
@@ -120,7 +120,7 @@ namespace UploadFiles
                     }
                     uploadData.Add(streamContent, "file", filename);
 
-                    using (HttpResponseMessage response = await _client.PostAsync(_wiki.Api, uploadData))
+                    using (HttpResponseMessage response = await _client.PostAsync(_api, uploadData))
                     {
                         string responseContent = await response.Content.ReadAsStringAsync();
                         log.Debug(responseContent);
@@ -132,7 +132,7 @@ namespace UploadFiles
 
         private async Task<bool> IsUserConfirmedAsync(string username)
         {
-            Uri uri = _wiki.ApiQuery("list=users&usprop=groups&ususers=" + username);
+            Uri uri = _api.ApiQuery("list=users&usprop=groups&ususers=" + username);
             using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 XmlDocument xml = await GetXml(response.Content);
@@ -143,7 +143,7 @@ namespace UploadFiles
 
         private async Task<string> GetEditTokenAsync()
         {
-            Uri uri = _wiki.ApiQuery("prop=info&intoken=edit&titles=Foo&indexpageids=1");
+            Uri uri = _api.ApiQuery("prop=info&intoken=edit&titles=Foo&indexpageids=1");
             using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
                 XmlDocument xml = await GetXml(response.Content);
@@ -154,47 +154,29 @@ namespace UploadFiles
 
         private async Task GetPermittedTypes()
         {
-            Uri uri = _wiki.Article("Special:Upload");
+            Uri uri = _api.ApiQuery("meta=siteinfo&siprop=fileextensions");
             using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
-                if (response.StatusCode == HttpStatusCode.OK)
+                XmlDocument xml = await GetXml(response.Content);
+                XmlNodeList fileExtensions = xml.SelectNodes("/api/query/fileextensions/fe");
+                if (fileExtensions.Count > 0)
                 {
-                    string content = await response.Content.ReadAsStringAsync();
-                    Match permittedDiv = Regex.Match(content, @"<div id=""mw-upload-permitted"">\s*<p>\s*Permitted file types:\s*([^<]+)");
-                    if (permittedDiv.Success)
-                    {
-                        log.Debug($"Found permitted types: {permittedDiv.Value}");
-                        string[] types = permittedDiv.Groups[1].Value.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                        if (types.Length > 0)
-                        {
-                            _permittedTypes = new List<string>();
-                            foreach (string type in types)
-                            {
-                                string trimmed = type.Trim();
-                                _permittedTypes.Add("." + trimmed.Substring(0, trimmed.Length - 1));
-                            }
-                        }
-                        else log.Debug("Permitted types was empty.");
-                    }
-                    else log.Debug("No match for permitted types");
+                    _permittedTypes = new List<string>();
+                    foreach (XmlNode fe in fileExtensions)
+                        _permittedTypes.Add("." + fe.Attributes["ext"].Value);
                 }
-                else log.Debug("Special:Upload page not found, no permitted types");
             }
         }
 
         private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
-            Uri uri = _wiki.RawArticle("MediaWiki:UploadFilesUsers.css");
+            Uri uri = _api.ApiQuery("prop=revisions&titles=MediaWiki:UploadFilesUsers.css&rvprop=content&rvlimit=1");
             using (HttpResponseMessage response = await _client.GetAsync(uri))
             {
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string content = await response.Content.ReadAsStringAsync();
-                    return  content.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x => x.Trim().ToUpperInvariant()).Contains(username.ToUpperInvariant());
-                }
-                log.Debug("No authorization page found.");
-                return false;
+                XmlDocument xml = await GetXml(response.Content);
+                XmlNode revision = xml.SelectSingleNode("/api/query/pages/page/revisions/rev");
+                return revision != null && revision.InnerText.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim().ToUpperInvariant()).Contains(username.ToUpperInvariant()); ;
             }
         }
 
@@ -202,7 +184,7 @@ namespace UploadFiles
         {
             using (var formParams = new FormUrlEncodedContent(loginParams))
             {
-                using (HttpResponseMessage response = await _client.PostAsync(_wiki.Api, formParams))
+                using (HttpResponseMessage response = await _client.PostAsync(_api, formParams))
                 {
                     XmlDocument xml = await GetXml(response.Content);
                     XmlNode login = xml.SelectSingleNode("/api/login");
