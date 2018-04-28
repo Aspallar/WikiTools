@@ -22,8 +22,6 @@ namespace UploadFilesTestServer
 
         private static void Run(Options options)
         {
-            // TODO: make this multi-threaded, required now login steps done in parallel
-
             var listener = new HttpListener();
             listener.Prefixes.Add("http://localhost:10202/");
             listener.Prefixes.Add("http://localhost:10202/wiki/");
@@ -75,7 +73,9 @@ namespace UploadFilesTestServer
                 else if (request.RawUrl.IndexOf("&prop=info&intoken=edit&titles=Foo") != -1)
                     reply = "<?xml version=\"1.0\"?><api><query><pages><page edittoken=\"+foobar\"></page></pages></query></api>";
                 else if (request.RawUrl.IndexOf("MediaWiki:UploadFilesUsers") != -1)
-                    reply = "a\nb\nc\nfoo\nbar\n";
+                    reply = "<?xml version=\"1.0\"?><api><query><pages><page><revisions><rev xml:space=\"preserve\">a\nb\nc\nfoo\nbar\n</rev></revisions></page></pages></query></api>";
+                else if (request.RawUrl.IndexOf("meta=siteinfo&siprop=fileextensions") != -1)
+                    reply = "<?xml version=\"1.0\"?><api><query><fileextensions><fe ext=\"png\" /><fe ext=\"jpg\" /></fileextensions></query></api>";
             }
 
             response.StatusCode = 200;
