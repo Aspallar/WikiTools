@@ -13,6 +13,7 @@ namespace UploadFiles
         private int? _waitTime;
         private int? _timeout;
         private int? _delay;
+        private string _content;
 
         [Value(0, HelpText = "File pattern for files to upload e.g. images\\*.png")]
         public string FilePattern { get; set; }
@@ -25,7 +26,34 @@ namespace UploadFiles
         }
 
         [Option(HelpText = "Filename of file containing text to use for initial page contents")]
-        public string Content { get; set; }
+        public string Content
+        {
+            get
+            {
+                return _content;
+            }
+            set
+            {
+                if (Path.IsPathRooted(value) || File.Exists(value))
+                {
+                    _content = value;
+                    return;
+                }
+                string appPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "content", value);
+                if (File.Exists(appPath))
+                {
+                    _content = appPath;
+                    return;
+                }
+                string userPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "UploadFilesContent", value);
+                if (File.Exists(userPath))
+                {
+                    _content = userPath;
+                    return;
+                }
+                _content = value;
+            }
+        }
 
         [Option(HelpText = "Comment for upload log")]
         public string Comment { get; set; }
