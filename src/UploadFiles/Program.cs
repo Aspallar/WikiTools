@@ -1,10 +1,7 @@
 ﻿using CommandLine;
 using log4net;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WikiToolsShared;
@@ -76,6 +73,8 @@ namespace UploadFiles
                 log.Info("Forcing upload on warnings (--force specified).");
             else
                 log.Info("Not forcing upload on warnings (no --force specified).");
+            if (!options.Site.ToUpperInvariant().StartsWith("HTTPS"))
+                log.Warn("Wiki access, including login, is not secure. Use https: in site for secure access.");
         }
 
         private static async Task RunAsync(Options options)
@@ -89,6 +88,7 @@ namespace UploadFiles
                 if (!await uploader.LoginAsync(username, password, options.NoFileTypeCheck))
                 {
                     Console.Error.WriteLine("Unable to log in.");
+                    log.Fatal("Login failed.");
                     return;
                 }
                 Console.CancelKeyPress += Console_CancelKeyPress;
@@ -137,7 +137,6 @@ namespace UploadFiles
                             log.Error($"[{file}] {error.Code} -> {error.Info}");
                             failWriter.Write(file, $" ERROR {error.Info}");
                         }
-                        return false;
                     }
                     else
                     {

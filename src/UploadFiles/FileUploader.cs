@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -62,17 +61,18 @@ namespace UploadFiles
 
                 Task<bool> userConfirmed = IsUserConfirmedAsync(username);
                 Task<bool> authorized = IsAuthorizedForUploadFilesAsync(username);
-                if (allFilesPermitted)
-                    Task.WaitAll(userConfirmed, authorized);
-                else
-                    Task.WaitAll(userConfirmed, authorized, GetPermittedTypes());
+                Task<string> editToken = GetEditTokenAsync();
 
-                if (!userConfirmed.Result || !authorized.Result)
+                if (allFilesPermitted)
+                    Task.WaitAll(userConfirmed, authorized, editToken);
+                else
+                    Task.WaitAll(userConfirmed, authorized, GetPermittedTypes(), editToken);
+
+                if (!userConfirmed.Result || !authorized.Result || string.IsNullOrEmpty(editToken.Result))
                     return false;
 
-                // must do edittoken last, otherwise it will be invalid
-                _editToken = await GetEditTokenAsync();
-                return !string.IsNullOrEmpty(_editToken);
+                _editToken = editToken.Result;
+                return true;
             }
             catch (XmlException)
             {
@@ -133,51 +133,35 @@ namespace UploadFiles
         private async Task<bool> IsUserConfirmedAsync(string username)
         {
             Uri uri = _api.ApiQuery("list=users&usprop=groups&ususers=" + username);
-            using (HttpResponseMessage response = await _client.GetAsync(uri))
-            {
-                XmlDocument xml = await GetXml(response.Content);
-                XmlNode node = xml.SelectSingleNode("/api/query/users/user/groups/g[.=\"autoconfirmed\"]");
-                return node != null;
-            }
+            XmlNode node = await GetSingleNode(uri, "/api/query/users/user/groups/g[.=\"autoconfirmed\"]");
+            return node != null;
         }
 
         private async Task<string> GetEditTokenAsync()
         {
             Uri uri = _api.ApiQuery("prop=info&intoken=edit&titles=Foo&indexpageids=1");
-            using (HttpResponseMessage response = await _client.GetAsync(uri))
-            {
-                XmlDocument xml = await GetXml(response.Content);
-                XmlNode node = xml.SelectSingleNode("/api/query/pages/page");
-                return node?.Attributes["edittoken"]?.Value;
-            }
+            XmlNode node = await GetSingleNode(uri, "/api/query/pages/page");
+            return node?.Attributes["edittoken"]?.Value;
         }
 
         private async Task GetPermittedTypes()
         {
             Uri uri = _api.ApiQuery("meta=siteinfo&siprop=fileextensions");
-            using (HttpResponseMessage response = await _client.GetAsync(uri))
+            XmlNodeList fileExtensions = await GetNodes(uri, "/api/query/fileextensions/fe");
+            if (fileExtensions.Count > 0)
             {
-                XmlDocument xml = await GetXml(response.Content);
-                XmlNodeList fileExtensions = xml.SelectNodes("/api/query/fileextensions/fe");
-                if (fileExtensions.Count > 0)
-                {
-                    _permittedTypes = new List<string>();
-                    foreach (XmlNode fe in fileExtensions)
-                        _permittedTypes.Add("." + fe.Attributes["ext"].Value);
-                }
+                _permittedTypes = new List<string>();
+                foreach (XmlNode fe in fileExtensions)
+                    _permittedTypes.Add("." + fe.Attributes["ext"].Value);
             }
         }
 
         private async Task<bool> IsAuthorizedForUploadFilesAsync(string username)
         {
             Uri uri = _api.ApiQuery("prop=revisions&titles=MediaWiki:UploadFilesUsers.css&rvprop=content&rvlimit=1");
-            using (HttpResponseMessage response = await _client.GetAsync(uri))
-            {
-                XmlDocument xml = await GetXml(response.Content);
-                XmlNode revision = xml.SelectSingleNode("/api/query/pages/page/revisions/rev");
-                return revision != null && revision.InnerText.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim().ToUpperInvariant()).Contains(username.ToUpperInvariant()); ;
-            }
+            XmlNode revision = await GetSingleNode(uri, "/api/query/pages/page/revisions/rev");
+            return revision != null && revision.InnerText.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim().ToUpperInvariant()).Contains(username.ToUpperInvariant()); ;
         }
 
         private async Task<LoginResponse> AttemptLoginAsync(List<KeyValuePair<string, string>> loginParams)
@@ -197,18 +181,34 @@ namespace UploadFiles
             }
         }
 
-        private static XmlDocument GetXmlDocument(string xmlString)
+        private async Task<XmlNodeList> GetNodes(Uri uri, string path)
         {
-            var doc = new XmlDocument();
-            doc.LoadXml(xmlString);
-            return doc;
+            XmlDocument xml = await GetXmlResponse(uri);
+            return xml.SelectNodes(path);
+        }
+
+        private async Task<XmlNode> GetSingleNode(Uri uri, string path)
+        {
+            XmlDocument xml = await GetXmlResponse(uri);
+            return xml.SelectSingleNode(path);
+        }
+
+        private async Task<XmlDocument> GetXmlResponse(Uri uri)
+        {
+            string response = await _client.GetStringAsync(uri);
+            log.Debug(response);
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(response);
+            return xml;
         }
 
         private static async Task<XmlDocument> GetXml(HttpContent content)
         {
             string response = await content.ReadAsStringAsync();
             log.Debug(response);
-            return GetXmlDocument(response);
+            var doc = new XmlDocument();
+            doc.LoadXml(response);
+            return doc;
         }
 
         private string UserAgent
