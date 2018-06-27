@@ -542,7 +542,6 @@ Forerunner of the Coalition
 Forerunner of the Empire
 Forerunner of the Heralds
 Forerunner of the Legion
-Forest
 Form of the Dinosaur
 Forsake the Worldly
 Forsaken Sanctuary
@@ -761,7 +760,6 @@ Iron League Steed
 Ironclad Revolutionary
 Irontread Crusher
 Irrigated Farmland
-Island
 Isolated Chapel
 Itlimoc, Cradle of the Sun
 Ixalan's Binding
@@ -937,7 +935,6 @@ Moment of Craving
 Moment of Triumph
 Monstrous Onslaught
 Morbid Curiosity
-Mountain
 Mouth
 Mox Amber
 Muldrotha, the Gravetide
@@ -1057,7 +1054,6 @@ Pirate's Prize
 Pitiless Plunderer
 Pitiless Vizier
 Plague Belcher
-Plains
 Planar Bridge
 Plummet
 Polyraptor
@@ -1425,7 +1421,6 @@ Survive
 Survivors' Encampment
 Swab Goblin
 Swaggering Corsair
-Swamp
 Swarm Intelligence
 Swashbuckling
 Sweatworks Brawler
