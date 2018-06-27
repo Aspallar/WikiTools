@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -14,9 +16,6 @@ namespace DeckCards
     class Program
     {
         static WebClient client;
-        const string baseUrl = "http://magicarena.wikia.com/";
-        const string apiUrl = baseUrl + "api.php";
-        const string deckUrl = baseUrl + "wiki/Decks/";
 
         static void Main(string[] args)
         {
@@ -25,19 +24,30 @@ namespace DeckCards
                 var cardNames = ReadCardNames();
                 Dictionary<string, List<string>> cards = CardsFromDecks(cardNames);
                 Console.Error.WriteLine(new string('=', 20));
+                WriteLastUpdated();
                 WriteCards(cards);
             }
-            //Console.ReadKey();
+        }
+
+        private static void WriteLastUpdated()
+        {
+            DateTime now = DateTime.Now.ToUniversalTime();
+            Console.WriteLine($"Updated on {now.ToString("dddd, dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture)} UTC\n");
         }
 
         private static Dictionary<string, string> ReadCardNames()
         {
             string line;
             var cardNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            using (var sr = new StreamReader("cardnames.txt"))
+            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\cardnames.txt";
+            Console.Error.WriteLine($"Reading card names from {filename}");
+            using (var sr = new StreamReader(filename))
             {
                 while ((line = sr.ReadLine()) != null)
-                    cardNames.Add(line, line.Trim());
+                {
+                    string trimmed = line.Trim();
+                    cardNames.Add(trimmed, trimmed);
+                }
             }
             return cardNames;
         }
@@ -46,12 +56,15 @@ namespace DeckCards
         {
             List<string> sorted = cards.Keys.ToList();
             sorted.Sort();
+            Console.WriteLine("<div style=\"margin-left:60px\">");
             foreach (var card in sorted)
             {
-                Console.WriteLine($"'''{{{{Card|{card}}}}}'''");
-                foreach (var deck in cards[card])
+                var decks = cards[card];
+                Console.WriteLine($"'''{{{{Card|{card}}}}}''' ({decks.Count})");
+                foreach (var deck in decks)
                     Console.WriteLine($"*[[{deck}|{deck.Substring(6)}]]");
             }
+            Console.WriteLine("</div>");
         }
 
         private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames)
@@ -155,6 +168,9 @@ namespace DeckCards
 
         private static string BuildApiUrl(Dictionary <string, string> queryParameters)
         {
+            const string baseUrl = "http://magicarena.wikia.com/";
+            const string apiUrl = baseUrl + "api.php";
+
             var url = new StringBuilder(apiUrl);
             url.Append("?action=query&format=xml");
             foreach (var entry in queryParameters)

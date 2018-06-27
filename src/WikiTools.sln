@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0C50CEF8-15A1-4F48-B270-26988A7C3FD3}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
+		..\build.cmd = ..\build.cmd
 		..\deploy.cmd = ..\deploy.cmd
 		..\README.md = ..\README.md
 		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
