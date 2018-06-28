@@ -3,24 +3,23 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
+using WikiaClientLibrary;
 
 namespace DeckCards
 {
     class Program
     {
-        static WebClient client;
+        private static ExtendedWebClient client;
 
         static void Main(string[] args)
         {
-            using (client = new WebClient())
+            using (client = new ExtendedWebClient())
             {
+                client.UserAgent = UserAgent();
                 var cardNames = ReadCardNames();
                 Dictionary<string, List<string>> cards = CardsFromDecks(cardNames);
                 Console.Error.WriteLine(new string('=', 20));
@@ -45,8 +44,8 @@ namespace DeckCards
             {
                 while ((line = sr.ReadLine()) != null)
                 {
-                    string trimmed = line.Trim();
-                    cardNames.Add(trimmed, trimmed);
+                    string trimmedLine = line.Trim();
+                    cardNames.Add(trimmedLine, trimmedLine);
                 }
             }
             return cardNames;
@@ -60,9 +59,12 @@ namespace DeckCards
             foreach (var card in sorted)
             {
                 var decks = cards[card];
-                Console.WriteLine($"'''{{{{Card|{card}}}}}''' ({decks.Count})");
+                Console.WriteLine("<div class=\"mdw-collapse-row\">");
+                Console.WriteLine($"<span class=\"mdw-arrow-collapse\"></span> '''{{{{Card|{card}}}}}''' ({decks.Count})");
+                Console.WriteLine("<div class=\"mdw-collapsable\">");
                 foreach (var deck in decks)
                     Console.WriteLine($"*[[{deck}|{deck.Substring(6)}]]");
+                Console.WriteLine("</div></div>");
             }
             Console.WriteLine("</div>");
         }
@@ -99,7 +101,7 @@ namespace DeckCards
             var apfrom = "";
             var decks = new XmlDocument();
             var rev = new XmlDocument();
-            var url = BuildApiUrl(new Dictionary<string, string>
+            var url = ApiQuery(new Dictionary<string, string>
             {
                 { "list", "allpages" },
                 { "apprefix", "Decks/" },
@@ -115,7 +117,7 @@ namespace DeckCards
                 apfrom = cont == null ? "" : cont.Attributes["apfrom"].Value;
                 foreach (XmlNode node in pages)
                 {
-                    var revisionUrl = BuildApiUrl(new Dictionary<string, string>
+                    var revisionUrl = ApiQuery(new Dictionary<string, string>
                     {
                         { "prop", "revisions" },
                         { "rvprop", "content" },
@@ -131,6 +133,7 @@ namespace DeckCards
             } while (!string.IsNullOrEmpty(apfrom));
         }
 
+        private static Regex cardRegex = new Regex(@"\d+\s+([^\(/]+)");
         private static List<string> GetCards(string pageText)
         {
             char[] newline = { '\n' };
@@ -138,11 +141,11 @@ namespace DeckCards
             string cardText = ExtractCardText(pageText);
             foreach (string cardLine in cardText.Split(newline))
             {
-                string trimmed = cardLine.Trim();
-                if (trimmed.Length > 0) {
-                    if (trimmed.StartsWith("--"))
+                string trimmedCardLine = cardLine.Trim();
+                if (trimmedCardLine.Length > 0) {
+                    if (trimmedCardLine.StartsWith("--"))
                         break; // reached sideboard, ignore the rest
-                    Match match = Regex.Match(trimmed, @"\d+\s+([^\(/]+)");
+                    Match match = cardRegex.Match(trimmedCardLine);
                     if (match.Success)
                     {
                         string name = match.Groups[1].Value.Trim();
@@ -166,13 +169,12 @@ namespace DeckCards
             return cardText;
         }
 
-        private static string BuildApiUrl(Dictionary <string, string> queryParameters)
+        private static string ApiQuery(Dictionary <string, string> queryParameters)
         {
             const string baseUrl = "http://magicarena.wikia.com/";
-            const string apiUrl = baseUrl + "api.php";
+            const string apiUrl = baseUrl + "api.php?action=query&format=xml";
 
             var url = new StringBuilder(apiUrl);
-            url.Append("?action=query&format=xml");
             foreach (var entry in queryParameters)
             {
                 url.Append('&');
@@ -183,5 +185,10 @@ namespace DeckCards
             return url.ToString(); ;
         }
 
+        private static string UserAgent()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            return $"DeckCards/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.wikia.com)";
+        }
     }
 }
