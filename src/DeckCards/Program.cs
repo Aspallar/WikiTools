@@ -53,12 +53,19 @@ namespace DeckCards
 
         private static void WriteCards(Dictionary<string, List<string>> cards)
         {
+            char currentLetter = '*';
             List<string> sorted = cards.Keys.ToList();
             sorted.Sort();
             Console.WriteLine("<div style=\"margin-left:60px\">");
             foreach (var card in sorted)
             {
                 var decks = cards[card];
+                char firstLetter = char.ToLowerInvariant(card[0]);
+                if (firstLetter != currentLetter)
+                {
+                    Console.WriteLine($"<div id=\"mdw{firstLetter}\"></div>");
+                    currentLetter = firstLetter;
+                }
                 Console.WriteLine("<div class=\"mdw-collapse-row\">");
                 Console.WriteLine($"<span class=\"mdw-arrow-collapse\"></span> '''{{{{Card|{card}}}}}''' ({decks.Count})");
                 Console.WriteLine("<div class=\"mdw-collapsable\">");
