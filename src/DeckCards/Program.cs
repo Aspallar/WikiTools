@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommandLine;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -14,24 +15,101 @@ namespace DeckCards
     class Program
     {
         private static ExtendedWebClient client;
+        private static WikiaClient wiki;
 
         static void Main(string[] args)
         {
-            using (client = new ExtendedWebClient())
+            Parser.Default.ParseArguments<Options>(args)
+                .WithParsed(options => Run(options));
+        }
+
+        private static void Run(Options options)
+        {
+            if (options.Save)
             {
-                client.UserAgent = UserAgent();
-                var cardNames = ReadCardNames();
-                Dictionary<string, List<string>> cards = CardsFromDecks(cardNames);
+                options.SaveDefaults();
+                Console.WriteLine("Username and password saved.");
+                return;
+            }
+            options.SetDefaults();
+            DateTime runTime = DateTime.Now.ToUniversalTime();
+            Dictionary<string, List<string>> cards;
+
+            using (wiki = new WikiaClient(options.Site, UserAgent()))
+            {
+                if (!wiki.Login(options.UserName, options.Password))
+                {
+                    Console.Error.WriteLine("Unable to log in.");
+                    return;
+                }
+                using (client = new ExtendedWebClient())
+                {
+                    client.UserAgent = UserAgent();
+                    var cardNames = ReadCardNames();
+                    cards = CardsFromDecks(cardNames);
+                }
                 Console.Error.WriteLine(new string('=', 20));
-                WriteLastUpdated();
-                WriteCards(cards);
+                string markup = GetMarkup(cards);
+                if (options.NoUpload)
+                {
+                    Console.WriteLine(FormatUpdated(runTime));
+                    Console.WriteLine(markup);
+                }
+                else
+                {
+                    Console.WriteLine("Uploading...");
+                    Upload(options, markup, runTime);
+                    Console.WriteLine("Uploaded");
+                }
             }
         }
 
-        private static void WriteLastUpdated()
+        private static void Upload(Options options, string markup, DateTime runTime)
         {
-            DateTime now = DateTime.Now.ToUniversalTime();
-            Console.WriteLine($"Updated on {now.ToString("dddd, dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture)} UTC\n");
+            const string updatedMarkerStart = "<!-- updated start -->";
+            const string updatedMarkerEnd = "<!-- updated end -->";
+            const string startMarker = "<!-- start -->";
+            const string endMarker = "<!-- end -->";
+
+            WikiaPage target = new WikiaPage(wiki, options.Target);
+            target.Open();
+            int startPos = target.Content.IndexOf(startMarker);
+            if (startPos == -1)
+            {
+                Console.Error.WriteLine($"Unable to find insertion point: {startMarker}");
+                return;
+            }
+            startPos += startMarker.Length;
+            int endPos = target.Content.IndexOf(endMarker);
+            if (endPos == -1)
+            {
+                Console.Error.WriteLine($"Unable to find insertion point: {endMarker}");
+                return;
+            }
+            int updatedStartPos = target.Content.IndexOf(updatedMarkerStart);
+            if (updatedStartPos == -1)
+            {
+                Console.Error.WriteLine($"Unable to find insertion point: {updatedMarkerStart}");
+                return;
+            }
+            updatedStartPos += updatedMarkerStart.Length;
+            int updatedEndPos = target.Content.IndexOf(updatedMarkerEnd);
+            if (updatedEndPos == -1)
+            {
+                Console.Error.WriteLine($"Unable to find insertion point: {updatedMarkerEnd}");
+                return;
+            }
+            target.Content = target.Content.Substring(0, updatedStartPos)
+                + FormatUpdated(runTime)
+                + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
+                + markup 
+                + target.Content.Substring(endPos);
+            target.Save("Updating list via DeckCards utility.");
+        }
+
+        private static string FormatUpdated(DateTime dt)
+        {
+            return $"Updated on {dt.ToString("dddd, dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture)} UTC";
         }
 
         private static Dictionary<string, string> ReadCardNames()
@@ -51,29 +129,43 @@ namespace DeckCards
             return cardNames;
         }
 
-        private static void WriteCards(Dictionary<string, List<string>> cards)
+        private static string GetMarkup(Dictionary<string, List<string>> cards)
         {
+            StringBuilder markup = new StringBuilder(350 * 1024);
             char currentLetter = '*';
             List<string> sorted = cards.Keys.ToList();
             sorted.Sort();
-            Console.WriteLine("<div style=\"margin-left:60px\">");
+            markup.AppendLine("<div style=\"margin-left:60px\">");
             foreach (var card in sorted)
             {
                 var decks = cards[card];
                 char firstLetter = char.ToLowerInvariant(card[0]);
                 if (firstLetter != currentLetter)
                 {
-                    Console.WriteLine($"<div id=\"mdw{firstLetter}\"></div>");
+                    markup.Append("<div id=\"mdw");
+                    markup.Append(firstLetter);
+                    markup.AppendLine("\"></div>");
                     currentLetter = firstLetter;
                 }
-                Console.WriteLine("<div class=\"mdw-collapse-row\">");
-                Console.WriteLine($"<span class=\"mdw-arrow-collapse\"></span> '''{{{{Card|{card}}}}}''' ({decks.Count})");
-                Console.WriteLine("<div class=\"mdw-collapsable\">");
+                markup.AppendLine("<div class=\"mdw-collapse-row\">");
+                markup.Append("<span class=\"mdw-arrow-collapse\"></span> '''{{Card|");
+                markup.Append(card);
+                markup.Append("}}''' (");
+                markup.Append(decks.Count);
+                markup.AppendLine(")");
+                markup.AppendLine("<div class=\"mdw-collapsable\">");
                 foreach (var deck in decks)
-                    Console.WriteLine($"*[[{deck}|{deck.Substring(6)}]]");
-                Console.WriteLine("</div></div>");
+                {
+                    markup.Append("*[[");
+                    markup.Append(deck);
+                    markup.Append('|');
+                    markup.Append(deck.Substring(6));
+                    markup.AppendLine("]]");
+                }
+                markup.AppendLine("</div></div>");
             }
-            Console.WriteLine("</div>");
+            markup.AppendLine("</div>");
+            return markup.ToString();
         }
 
         private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames)
