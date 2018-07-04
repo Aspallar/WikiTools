@@ -13,7 +13,7 @@ namespace DeckCards
         [Option(HelpText = "Password")]
         public string Password { get; set; }
 
-        [Option(Default = "http://magicarena.wikia.com", HelpText = "Site to update")]
+        [Option(Default = "https://magicarena.wikia.com", HelpText = "Site to update")]
         public string Site { get; set; }
 
         [Option(HelpText = "Save username and password")]
