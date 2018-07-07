@@ -132,40 +132,52 @@ namespace DeckCards
         private static string GetMarkup(Dictionary<string, List<string>> cards)
         {
             StringBuilder markup = new StringBuilder(350 * 1024);
-            char currentLetter = '*';
-            List<string> sorted = cards.Keys.ToList();
-            sorted.Sort();
+            char currentFirstLetter = '*';
+            List<string> sortedCards = cards.Keys.OrderBy(x => x).ToList();
             markup.AppendLine("<div style=\"margin-left:60px\">");
-            foreach (var card in sorted)
+            foreach (var card in sortedCards)
             {
                 var decks = cards[card];
                 char firstLetter = char.ToLowerInvariant(card[0]);
-                if (firstLetter != currentLetter)
+                if (firstLetter != currentFirstLetter)
                 {
-                    markup.Append("<div id=\"mdw");
-                    markup.Append(firstLetter);
-                    markup.AppendLine("\"></div>");
-                    currentLetter = firstLetter;
+                    AppendAnchorDiv(markup, firstLetter);
+                    currentFirstLetter = firstLetter;
                 }
                 markup.AppendLine("<div class=\"mdw-collapse-row\">");
-                markup.Append("<span class=\"mdw-arrow-collapse\"></span> '''{{Card|");
-                markup.Append(card);
-                markup.Append("}}''' (");
-                markup.Append(decks.Count);
-                markup.AppendLine(")");
+                AppendCardRow(markup, card, decks);
                 markup.AppendLine("<div class=\"mdw-collapsable\">");
                 foreach (var deck in decks)
-                {
-                    markup.Append("*[[");
-                    markup.Append(deck);
-                    markup.Append('|');
-                    markup.Append(deck.Substring(6));
-                    markup.AppendLine("]]");
-                }
+                    AppendDeckRow(markup, deck);
                 markup.AppendLine("</div></div>");
             }
             markup.AppendLine("</div>");
             return markup.ToString();
+        }
+
+        private static void AppendCardRow(StringBuilder markup, string card, List<string> decks)
+        {
+            markup.Append("<span class=\"mdw-arrow-collapse\"></span> '''{{Card|");
+            markup.Append(card);
+            markup.Append("}}''' (");
+            markup.Append(decks.Count);
+            markup.AppendLine(")");
+        }
+
+        private static void AppendDeckRow(StringBuilder markup, string deck)
+        {
+            markup.Append("*[[");
+            markup.Append(deck);
+            markup.Append('|');
+            markup.Append(deck.Substring(6));
+            markup.AppendLine("]]");
+        }
+
+        private static void AppendAnchorDiv(StringBuilder markup, char firstLetter)
+        {
+            markup.Append("<div id=\"mdw");
+            markup.Append(firstLetter);
+            markup.AppendLine("\"></div>");
         }
 
         private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames)
