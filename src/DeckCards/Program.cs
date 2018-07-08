@@ -223,6 +223,7 @@ namespace DeckCards
             {
                 string deckxml = client.DownloadString(url + apfrom);
                 decks.LoadXml(deckxml);
+                TerminateOnError(decks, "Error while obtaining list of decks");
                 var pages = decks.SelectNodes("/api/query/allpages/p");
                 var continueNode = decks.SelectSingleNode("/api/query-continue/allpages");
                 apfrom = continueNode == null ? "" : continueNode.Attributes["apfrom"].Value;
@@ -243,6 +244,7 @@ namespace DeckCards
                     });
                     string content = client.DownloadString(revisionUrl);
                     response.LoadXml(content);
+                    TerminateOnError(response, "Error while obtaining deck contents.");
                     foreach (XmlNode page in response.SelectNodes("/api/query/pages/page"))
                     {
                         List<string> cards = GetCards(page.SelectSingleNode("revisions/rev").InnerText);
@@ -250,6 +252,17 @@ namespace DeckCards
                     }
                 }
             } while (!string.IsNullOrEmpty(apfrom));
+        }
+
+        private static void TerminateOnError(XmlDocument response, string message)
+        {
+            XmlNode error = response.SelectSingleNode("/api/error");
+            if (error != null)
+            {
+                Console.Error.WriteLine(message);
+                Console.Error.WriteLine(error.Attributes["info"].Value);
+                Environment.Exit(1);
+            }
         }
 
         private static Regex cardRegex = new Regex(@"\d+\s+([^\(/]+)");
