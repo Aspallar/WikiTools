@@ -43,7 +43,7 @@ namespace WikiaClientLibrary
                 response = AttemptLogin(userData);
                 return response.Result == ResponseResults.Success;
             }
-            catch (WebException)
+            catch (WebException ex)
             {
                 return false;
             }

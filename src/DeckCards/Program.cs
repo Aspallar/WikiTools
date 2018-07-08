@@ -46,7 +46,7 @@ namespace DeckCards
                 {
                     client.UserAgent = UserAgent();
                     var cardNames = ReadCardNames();
-                    cards = CardsFromDecks(cardNames);
+                    cards = CardsFromDecks(cardNames, options.Batch);
                 }
                 Console.Error.WriteLine(new string('=', 20));
                 string markup = GetMarkup(cards);
@@ -180,10 +180,10 @@ namespace DeckCards
             markup.AppendLine("\"></div>");
         }
 
-        private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames)
+        private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames, int batchSize)
         {
             var cards = new Dictionary<string, List<string>>();
-            foreach (var deck in GetDecks())
+            foreach (var deck in GetDecks(batchSize))
             {
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
@@ -207,11 +207,11 @@ namespace DeckCards
             return cards;
         }
 
-        private static IEnumerable<Deck> GetDecks()
+        private static IEnumerable<Deck> GetDecks(int batchSize)
         {
             var apfrom = "";
             var decks = new XmlDocument();
-            var rev = new XmlDocument();
+            var response = new XmlDocument();
             var url = ApiQuery(new Dictionary<string, string>
             {
                 { "list", "allpages" },
@@ -224,22 +224,30 @@ namespace DeckCards
                 string deckxml = client.DownloadString(url + apfrom);
                 decks.LoadXml(deckxml);
                 var pages = decks.SelectNodes("/api/query/allpages/p");
-                var cont = decks.SelectSingleNode("/api/query-continue/allpages");
-                apfrom = cont == null ? "" : cont.Attributes["apfrom"].Value;
-                foreach (XmlNode node in pages)
+                var continueNode = decks.SelectSingleNode("/api/query-continue/allpages");
+                apfrom = continueNode == null ? "" : continueNode.Attributes["apfrom"].Value;
+                var pageNodes = pages.GetEnumerator();
+                while (pageNodes.MoveNext())
                 {
+                    var pageids = new List<string>();
+                    int k = batchSize;
+                    do
+                    {
+                        pageids.Add(((XmlNode)pageNodes.Current).Attributes["pageid"].Value);
+                    } while (--k != 0 && pageNodes.MoveNext());
                     var revisionUrl = ApiQuery(new Dictionary<string, string>
                     {
                         { "prop", "revisions" },
                         { "rvprop", "content" },
-                        { "rvlimit", "1" },
-                        { "pageids", node.Attributes["pageid"].Value },
+                        { "pageids", string.Join("|", pageids) },
                     });
                     string content = client.DownloadString(revisionUrl);
-                    rev.LoadXml(content);
-                    var revNode = rev.SelectSingleNode("/api/query/pages/page/revisions/rev");
-                    List<string> cards = GetCards(revNode.InnerText);
-                    yield return new Deck(node.Attributes["title"].Value, cards);
+                    response.LoadXml(content);
+                    foreach (XmlNode page in response.SelectNodes("/api/query/pages/page"))
+                    {
+                        List<string> cards = GetCards(page.SelectSingleNode("revisions/rev").InnerText);
+                        yield return new Deck(page.Attributes["title"].Value, cards);
+                    }
                 }
             } while (!string.IsNullOrEmpty(apfrom));
         }

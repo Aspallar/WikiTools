@@ -22,6 +22,9 @@ namespace DeckCards
         [Option(Default = "Cards In Decks", HelpText = "Title of page to update")]
         public string Target { get; set; }
 
+        [Option(Default = 20, HelpText = "Number of decks to fetch in each batch")]
+        public int Batch { get; set; }
+
         public void SetDefaults()
         {
             var props = Properties.Settings.Default;
