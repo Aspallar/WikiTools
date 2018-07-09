@@ -4,16 +4,15 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace WikiaClientLibrary
 {
     public class WikiaClient : IDisposable
     {
-        private ExtendedWebClient _client;
+        protected ExtendedWebClient _client;
 
         public string Site { get; private set; }
-
-        public ExtendedWebClient Client => _client;
 
         public WikiaClient(string site, string userAgent)
         {

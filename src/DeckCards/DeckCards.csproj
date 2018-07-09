@@ -52,6 +52,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="CardsInDecksClient.cs" />
     <Compile Include="Deck.cs" />
     <Compile Include="Encryption.cs" />
     <Compile Include="Markup.cs" />
