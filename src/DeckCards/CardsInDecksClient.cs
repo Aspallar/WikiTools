@@ -65,8 +65,7 @@ namespace DeckCards
             });
             do
             {
-                string response = _client.DownloadString(url + apfrom);
-                decks.LoadXml(response);
+                GetXmlResponse(url + apfrom, decks);
                 TerminateOnErrorOrWarning(decks, "Error while obtaining list of decks");
                 var deckPages = decks.SelectNodes("/api/query/allpages/p");
                 var continueNode = decks.SelectSingleNode("/api/query-continue/allpages");
@@ -86,8 +85,7 @@ namespace DeckCards
                         { "rvprop", "content" },
                         { "pageids", string.Join("|", pageids) },
                     });
-                    response = _client.DownloadString(revisionUrl);
-                    deckContents.LoadXml(response);
+                    GetXmlResponse(revisionUrl, deckContents);
                     TerminateOnErrorOrWarning(deckContents, "Error while obtaining deck contents.");
                     foreach (XmlNode deckPage in deckContents.SelectNodes("/api/query/pages/page"))
                     {
@@ -156,6 +154,12 @@ namespace DeckCards
             {
                 return apiUrl;
             }
+        }
+
+        private void GetXmlResponse(string url, XmlDocument response)
+        {
+            string responseContent = _client.DownloadString(url);
+            response.Load(url);
         }
 
         private static void TerminateOnErrorOrWarning(XmlDocument response, string message)

@@ -235,7 +235,7 @@ namespace WikiaClientLibrary
 
         private string ApiPageInfoWithContentUrl(string title)
         {
-            return ApiUrl("query&prop=info|revisions&intoken=edit&rvprop=content|timestamp&format=json&titles=" + title);
+            return ApiUrl($"query&prop=info|revisions&intoken=edit&rvprop=content|timestamp&format=json&titles={title}&cb={DateTime.Now.Ticks}");
         }
 
         public async Task<string> GetPageContentsAsync(string title)

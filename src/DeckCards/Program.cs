@@ -80,6 +80,8 @@ namespace DeckCards
 
             WikiaPage target = new WikiaPage(wiki, options.Target);
             target.Open();
+            if (!target.Exists)
+                throw new UploadException("Target page does not exist.");
             int startPos = target.Content.IndexOf(startMarker);
             if (startPos == -1)
                 throw new UploadException($"Unable to find insertion point: {startMarker}");
@@ -97,7 +99,7 @@ namespace DeckCards
             target.Content = target.Content.Substring(0, updatedStartPos)
                 + Markup.UpdatedOn(runTime)
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
-                + markup 
+                + markup
                 + target.Content.Substring(endPos);
             target.Save("Updating list via DeckCards utility.");
         }
