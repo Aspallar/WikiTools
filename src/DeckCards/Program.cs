@@ -211,7 +211,7 @@ namespace DeckCards
         {
             var apfrom = "";
             var decks = new XmlDocument();
-            var response = new XmlDocument();
+            var deckContents = new XmlDocument();
             var url = ApiQuery(new Dictionary<string, string>
             {
                 { "list", "allpages" },
@@ -221,46 +221,54 @@ namespace DeckCards
             });
             do
             {
-                string deckxml = client.DownloadString(url + apfrom);
-                decks.LoadXml(deckxml);
-                TerminateOnError(decks, "Error while obtaining list of decks");
-                var pages = decks.SelectNodes("/api/query/allpages/p");
+                string response = client.DownloadString(url + apfrom);
+                decks.LoadXml(response);
+                TerminateOnErrorOrWarning(decks, "Error while obtaining list of decks");
+                var deckPages = decks.SelectNodes("/api/query/allpages/p");
                 var continueNode = decks.SelectSingleNode("/api/query-continue/allpages");
                 apfrom = continueNode == null ? "" : continueNode.Attributes["apfrom"].Value;
-                var pageNodes = pages.GetEnumerator();
-                while (pageNodes.MoveNext())
+                var deckNodes = deckPages.GetEnumerator();
+                while (deckNodes.MoveNext())
                 {
                     var pageids = new List<string>();
                     int k = batchSize;
                     do
                     {
-                        pageids.Add(((XmlNode)pageNodes.Current).Attributes["pageid"].Value);
-                    } while (--k != 0 && pageNodes.MoveNext());
+                        pageids.Add(((XmlNode)deckNodes.Current).Attributes["pageid"].Value);
+                    } while (--k != 0 && deckNodes.MoveNext());
                     var revisionUrl = ApiQuery(new Dictionary<string, string>
                     {
                         { "prop", "revisions" },
                         { "rvprop", "content" },
                         { "pageids", string.Join("|", pageids) },
                     });
-                    string content = client.DownloadString(revisionUrl);
-                    response.LoadXml(content);
-                    TerminateOnError(response, "Error while obtaining deck contents.");
-                    foreach (XmlNode page in response.SelectNodes("/api/query/pages/page"))
+                    response = client.DownloadString(revisionUrl);
+                    deckContents.LoadXml(response);
+                    TerminateOnErrorOrWarning(deckContents, "Error while obtaining deck contents.");
+                    foreach (XmlNode deckPage in deckContents.SelectNodes("/api/query/pages/page"))
                     {
-                        List<string> cards = GetCards(page.SelectSingleNode("revisions/rev").InnerText);
-                        yield return new Deck(page.Attributes["title"].Value, cards);
+                        List<string> cards = GetCards(deckPage.SelectSingleNode("revisions/rev").InnerText);
+                        yield return new Deck(deckPage.Attributes["title"].Value, cards);
                     }
                 }
             } while (!string.IsNullOrEmpty(apfrom));
         }
 
-        private static void TerminateOnError(XmlDocument response, string message)
+        private static void TerminateOnErrorOrWarning(XmlDocument response, string message)
         {
             XmlNode error = response.SelectSingleNode("/api/error");
             if (error != null)
             {
                 Console.Error.WriteLine(message);
                 Console.Error.WriteLine(error.Attributes["info"].Value);
+                Environment.Exit(1);
+            }
+            XmlNode warnings = response.SelectSingleNode("/api/warnings");
+            if (warnings != null)
+            {
+                Console.Error.WriteLine(message);
+                foreach (XmlNode warning in warnings.ChildNodes)
+                    Console.WriteLine(warning.InnerText);
                 Environment.Exit(1);
             }
         }
@@ -301,20 +309,27 @@ namespace DeckCards
             return cardText;
         }
 
-        private static string ApiQuery(Dictionary <string, string> queryParameters)
+        private static string ApiQuery(Dictionary <string, string> queryParameters = null)
         {
             const string baseUrl = "http://magicarena.wikia.com/";
             const string apiUrl = baseUrl + "api.php?action=query&format=xml";
 
-            var url = new StringBuilder(apiUrl);
-            foreach (var entry in queryParameters)
+            if (queryParameters != null)
             {
-                url.Append('&');
-                url.Append(entry.Key);
-                url.Append('=');
-                url.Append(entry.Value);
+                var url = new StringBuilder(apiUrl);
+                foreach (var entry in queryParameters)
+                {
+                    url.Append('&');
+                    url.Append(entry.Key);
+                    url.Append('=');
+                    url.Append(entry.Value);
+                }
+                return url.ToString(); ;
             }
-            return url.ToString(); ;
+            else
+            {
+                return apiUrl;
+            }
         }
 
         private static string UserAgent()
