@@ -13,8 +13,20 @@ namespace DeckCards
 
         static void Main(string[] args)
         {
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed(options => Run(options));
+#if !DEBUG
+            try
+            {
+#endif
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(options => Run(options));
+#if !DEBUG
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine("Unexpected Error");
+                Console.Error.WriteLine(ex.ToString());
+            }
+#endif
         }
 
         private static void Run(Options options)
@@ -46,8 +58,15 @@ namespace DeckCards
                 else
                 {
                     Console.WriteLine("Uploading...");
-                    Upload(options, markup, runTime);
-                    Console.WriteLine("Uploaded");
+                    try
+                    {
+                        Upload(options, markup, runTime);
+                        Console.WriteLine("Uploaded.");
+                    }
+                    catch (UploadException ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 }
             }
         }
@@ -63,30 +82,18 @@ namespace DeckCards
             target.Open();
             int startPos = target.Content.IndexOf(startMarker);
             if (startPos == -1)
-            {
-                Console.Error.WriteLine($"Unable to find insertion point: {startMarker}");
-                return;
-            }
+                throw new UploadException($"Unable to find insertion point: {startMarker}");
             startPos += startMarker.Length;
             int endPos = target.Content.IndexOf(endMarker);
             if (endPos == -1)
-            {
-                Console.Error.WriteLine($"Unable to find insertion point: {endMarker}");
-                return;
-            }
+                throw new UploadException($"Unable to find insertion point: {endMarker}");
             int updatedStartPos = target.Content.IndexOf(updatedMarkerStart);
             if (updatedStartPos == -1)
-            {
-                Console.Error.WriteLine($"Unable to find insertion point: {updatedMarkerStart}");
-                return;
-            }
+                throw new UploadException($"Unable to find insertion point: {updatedMarkerStart}");
             updatedStartPos += updatedMarkerStart.Length;
             int updatedEndPos = target.Content.IndexOf(updatedMarkerEnd);
             if (updatedEndPos == -1)
-            {
-                Console.Error.WriteLine($"Unable to find insertion point: {updatedMarkerEnd}");
-                return;
-            }
+                throw new UploadException($"Unable to find insertion point: {updatedMarkerEnd}");
             target.Content = target.Content.Substring(0, updatedStartPos)
                 + Markup.UpdatedOn(runTime)
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
