@@ -14,7 +14,6 @@ namespace DeckCards
 {
     class Program
     {
-        private static ExtendedWebClient client;
         private static WikiaClient wiki;
 
         static void Main(string[] args)
@@ -42,17 +41,13 @@ namespace DeckCards
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
-                using (client = new ExtendedWebClient())
-                {
-                    client.UserAgent = UserAgent();
-                    var cardNames = ReadCardNames();
-                    cards = CardsFromDecks(cardNames, options.Batch);
-                }
+                var cardNames = ReadCardNames();
+                cards = CardsFromDecks(cardNames, options.Batch, wiki.Client);
                 Console.Error.WriteLine(new string('=', 20));
-                string markup = GetMarkup(cards);
+                string markup = Markup.GetMarkup(cards);
                 if (options.NoUpload)
                 {
-                    Console.WriteLine(FormatUpdated(runTime));
+                    Console.WriteLine(Markup.UpdatedOn(runTime));
                     Console.WriteLine(markup);
                 }
                 else
@@ -100,16 +95,11 @@ namespace DeckCards
                 return;
             }
             target.Content = target.Content.Substring(0, updatedStartPos)
-                + FormatUpdated(runTime)
+                + Markup.UpdatedOn(runTime)
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
                 + markup 
                 + target.Content.Substring(endPos);
             target.Save("Updating list via DeckCards utility.");
-        }
-
-        private static string FormatUpdated(DateTime dt)
-        {
-            return $"Updated on {dt.ToString("dddd, dd MMMM yyyy HH:mm", CultureInfo.InvariantCulture)} UTC";
         }
 
         private static Dictionary<string, string> ReadCardNames()
@@ -129,61 +119,11 @@ namespace DeckCards
             return cardNames;
         }
 
-        private static string GetMarkup(Dictionary<string, List<string>> cards)
-        {
-            StringBuilder markup = new StringBuilder(350 * 1024);
-            char currentFirstLetter = '*';
-            List<string> sortedCards = cards.Keys.OrderBy(x => x).ToList();
-            markup.AppendLine("<div style=\"margin-left:60px\">");
-            foreach (var card in sortedCards)
-            {
-                var decks = cards[card];
-                char firstLetter = char.ToLowerInvariant(card[0]);
-                if (firstLetter != currentFirstLetter)
-                {
-                    AppendAnchorDiv(markup, firstLetter);
-                    currentFirstLetter = firstLetter;
-                }
-                markup.AppendLine("<div class=\"mdw-collapse-row\">");
-                AppendCardRow(markup, card, decks);
-                markup.AppendLine("<div class=\"mdw-collapsable\">");
-                foreach (var deck in decks)
-                    AppendDeckRow(markup, deck);
-                markup.AppendLine("</div></div>");
-            }
-            markup.AppendLine("</div>");
-            return markup.ToString();
-        }
 
-        private static void AppendCardRow(StringBuilder markup, string card, List<string> decks)
-        {
-            markup.Append("<span class=\"mdw-arrow-collapse\"></span> '''{{Card|");
-            markup.Append(card);
-            markup.Append("}}''' (");
-            markup.Append(decks.Count);
-            markup.AppendLine(")");
-        }
-
-        private static void AppendDeckRow(StringBuilder markup, string deck)
-        {
-            markup.Append("*[[");
-            markup.Append(deck);
-            markup.Append('|');
-            markup.Append(deck.Substring(6));
-            markup.AppendLine("]]");
-        }
-
-        private static void AppendAnchorDiv(StringBuilder markup, char firstLetter)
-        {
-            markup.Append("<div id=\"mdw");
-            markup.Append(firstLetter);
-            markup.AppendLine("\"></div>");
-        }
-
-        private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames, int batchSize)
+        private static Dictionary<string, List<string>> CardsFromDecks(Dictionary<string, string> cardNames, int batchSize, ExtendedWebClient client)
         {
             var cards = new Dictionary<string, List<string>>();
-            foreach (var deck in GetDecks(batchSize))
+            foreach (var deck in GetDecks(batchSize, client))
             {
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
@@ -207,7 +147,7 @@ namespace DeckCards
             return cards;
         }
 
-        private static IEnumerable<Deck> GetDecks(int batchSize)
+        private static IEnumerable<Deck> GetDecks(int batchSize, ExtendedWebClient client)
         {
             var apfrom = "";
             var decks = new XmlDocument();

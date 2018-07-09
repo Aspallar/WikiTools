@@ -13,6 +13,8 @@ namespace WikiaClientLibrary
 
         public string Site { get; private set; }
 
+        public ExtendedWebClient Client => _client;
+
         public WikiaClient(string site, string userAgent)
         {
             Site = site;
