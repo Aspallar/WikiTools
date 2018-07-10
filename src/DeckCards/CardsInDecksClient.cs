@@ -133,27 +133,15 @@ namespace DeckCards
             return cardText;
         }
 
-        private static string ApiQuery(Dictionary<string, string> queryParameters = null)
+        private string ApiQuery(Dictionary<string, string> queryParameters = null)
         {
-            const string baseUrl = "http://magicarena.wikia.com/";
-            const string apiUrl = baseUrl + "api.php?action=query&format=xml";
-
+            var url = new StringBuilder(Site).Append("api.php?action=query&format=xml");
             if (queryParameters != null)
             {
-                var url = new StringBuilder(apiUrl);
                 foreach (var entry in queryParameters)
-                {
-                    url.Append('&');
-                    url.Append(entry.Key);
-                    url.Append('=');
-                    url.Append(entry.Value);
-                }
-                return url.ToString(); ;
+                    url.Append('&').Append(entry.Key).Append('=').Append(entry.Value);
             }
-            else
-            {
-                return apiUrl;
-            }
+            return url.ToString(); ;
         }
 
         private void GetXmlResponse(string url, XmlDocument response)
