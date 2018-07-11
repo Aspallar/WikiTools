@@ -22,6 +22,7 @@ copy src\UploadFiles\bin\Release\WikiToolsShared.dll Deploy\.
 copy src\UploadFiles\bin\Release\log4net.dll Deploy\.
 copy src\DeckCards\bin\Release\DeckCards.exe Deploy\.
 copy src\DeckCards\bin\Release\cardnames.txt Deploy\.
+copy src\FetchAllCardBrowsingPages\bin\Release\FetchAllCardBrowsingPages.exe Deploy\.
 goto :eof
 
 :wrongfolder

@@ -21,7 +21,7 @@ namespace DeckCards
             markup.AppendLine("<div style=\"margin-left:60px\">");
             foreach (var card in sortedCards)
             {
-                var decks = cards[card];
+                var decks = cards[card].OrderBy(x => x).ToList();
                 char firstLetter = char.ToLowerInvariant(card[0]);
                 if (firstLetter != currentFirstLetter)
                 {
