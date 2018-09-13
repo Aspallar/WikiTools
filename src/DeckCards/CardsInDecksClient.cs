@@ -24,10 +24,10 @@ namespace DeckCards
             _batchSize = batchSize;
         }
 
-        public Dictionary<string, List<string>> GetCardsInDecks()
+        public Dictionary<string, List<string>> GetCardsInDecks(HashSet<string> ignoredDecks)
         {
             var cards = new Dictionary<string, List<string>>();
-            foreach (var deck in GetDecks())
+            foreach (var deck in GetDecks(ignoredDecks))
             {
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
@@ -51,7 +51,7 @@ namespace DeckCards
             return cards;
         }
 
-        private IEnumerable<Deck> GetDecks()
+        private IEnumerable<Deck> GetDecks(HashSet<string> ignoredDecks)
         {
             var apfrom = "";
             var decks = new XmlDocument();
@@ -77,7 +77,9 @@ namespace DeckCards
                     int k = _batchSize;
                     do
                     {
-                        pageids.Add(((XmlNode)deckNodes.Current).Attributes["pageid"].Value);
+                        XmlNode deck = (XmlNode)deckNodes.Current;
+                        if (!ignoredDecks.Contains(deck.Attributes["title"].Value))
+                            pageids.Add(deck.Attributes["pageid"].Value);
                     } while (--k != 0 && deckNodes.MoveNext());
                     var revisionUrl = ApiQuery(new Dictionary<string, string>
                     {

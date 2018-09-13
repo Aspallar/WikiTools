@@ -47,7 +47,7 @@ namespace DeckCards
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
-                Dictionary<string, List<string>> cards = wiki.GetCardsInDecks();
+                Dictionary<string, List<string>> cards = wiki.GetCardsInDecks(ReadIgnoredDecks());
                 Console.Error.WriteLine(new string('=', 20));
                 string markup = Markup.GetMarkup(cards);
                 if (options.NoUpload)
@@ -119,6 +119,29 @@ namespace DeckCards
                 }
             }
             return cardNames;
+        }
+
+        private static HashSet<string> ReadIgnoredDecks()
+        {
+            string line;
+            var ignoredDecks = new HashSet<string>();
+            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\ignoreddecks.txt";
+            if (File.Exists(filename))
+            {
+                Console.Error.WriteLine($"Reading ignored decks from {filename}");
+                using (var sr = new StreamReader(filename))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                    {
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            line = line.TrimEnd();
+                            ignoredDecks.Add("Decks/" + line);
+                        }
+                    }
+                }
+            }
+            return ignoredDecks;
         }
 
         private static string UserAgent()

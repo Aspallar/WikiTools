@@ -39,6 +39,11 @@ namespace DeckCards
             return markup.ToString();
         }
 
+        private static bool IgnoredDeck(string deck)
+        {
+            throw new NotImplementedException();
+        }
+
         private static void AppendCardRow(StringBuilder markup, string card, List<string> decks)
         {
             markup.Append("<span class=\"mdw-arrow-collapse\"></span> '''{{Card|");

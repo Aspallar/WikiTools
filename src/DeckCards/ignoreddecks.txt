@@ -1,0 +1,4 @@
+﻿TestDeck
+TestDeck - Blank lines in deck definition
+Test Deck - Bad Deck
+ Test Deck - space at start
