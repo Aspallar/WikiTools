@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using WikiaClientLibrary;
@@ -38,8 +39,23 @@ namespace FetchAllCardBrowsingPages
             using (client = new ExtendedWebClient())
             {
                 client.UserAgent = UserAgent();
-                List<string> cardBrowseTitles = GetCardBrowsingTitles();
-                FetchPages(cardBrowseTitles);
+                List<string> cardBrowseTitles = GetCardTitles(options.Category, options.Filter);
+                if (options.List)
+                    ListTitles(cardBrowseTitles);
+                else
+                    FetchPages(cardBrowseTitles);
+            }
+        }
+
+        private static void ListTitles(List<string> titles)
+        {
+            foreach (string title in titles)
+            {
+                Console.Write("[[");
+                Console.Write(title);
+                //Console.Write('|');
+                //Console.Write(title.Substring(6));
+                Console.WriteLine("]]<br />");
             }
         }
 
@@ -51,24 +67,33 @@ namespace FetchAllCardBrowsingPages
             {
                 Console.WriteLine($"{++count}: {title}");
                 string url = options.Site + title.Replace(' ', '_');
-                if (options.Purge)
-                    url += "&action=purge";
-                client.DownloadString(url);
+                if (options.Verbose)
+                    Console.WriteLine(url);
+                string response = client.DownloadString(url);
+                if (options.Verbose)
+                    Console.WriteLine(response.Substring(0, 2048));
             }
         }
 
-        private static List<string> GetCardBrowsingTitles()
+        private static List<string> GetCardTitles(string category, string filter)
         {
-            XmlDocument members = GetCategoryMembers();
+            Regex regex = string.IsNullOrEmpty(filter) ? null : new Regex(filter);
+            XmlDocument members = FetchCategoryMembers(category);
             var pageTitles = new List<string>();
             foreach (XmlNode node in members.SelectNodes("/api/query/categorymembers/cm"))
-                pageTitles.Add(node.Attributes["title"].Value);
+            {
+                string title = node.Attributes["title"].Value;
+                if (regex == null || regex.IsMatch(title))
+                    pageTitles.Add(title);
+            }
             return pageTitles;
         }
 
-        private static XmlDocument GetCategoryMembers()
+        private static XmlDocument FetchCategoryMembers(string category)
         {
-            string response = client.DownloadString(options.Site + "api.php?action=query&list=categorymembers&cmtitle=Category:Card%20Browsing&cmlimit=500&format=xml");
+            string url = options.Site + "api.php?cb=foo&action=query&list=categorymembers&cmlimit=500&format=xml&cmtitle=Category:" + Uri.EscapeUriString(category);
+            string response = client.DownloadString(url);
+
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(response);
             return doc;

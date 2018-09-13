@@ -21,7 +21,16 @@ namespace FetchAllCardBrowsingPages
             }
         }
 
-        [Option(HelpText = "Purge pages when fetching")]
-        public bool Purge { get; set; }
+        [Option(HelpText = "Just list titles")]
+        public bool List { get; set; }
+        
+        [Option(HelpText = "Category", Default = "Card Browsing")]
+        public string Category { get; set; }
+
+        [Option(HelpText = "Show start of response when fetching pages")]
+        public bool Verbose { get; set; }
+
+        [Option(HelpText = "Regex filter", Default = "^Cards/")]
+        public string Filter { get; set; }
     }
 }
