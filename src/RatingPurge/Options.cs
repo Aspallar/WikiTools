@@ -32,7 +32,7 @@ namespace RatingPurge
         public bool Force { get; set; }
 
         [Option(HelpText = "Comment to add to edit summary.")]
-        public string Comment { get; internal set; }
+        public string Comment { get; set; }
 
         public void Validate()
         {
