@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using WikiaClientLibrary;
@@ -41,16 +40,24 @@ namespace RatingPurge
 
         private static void Run(Options options)
         {
-            string userName = GetUsername(options);
-            string password = GetPassword(options);
-            using (WikiaClient client = new WikiaClient(options.Site, UserAgent))
+            try
             {
-                if (!client.Login(userName, password))
+                options.Validate();
+                string userName = GetUsername(options);
+                string password = GetPassword(options);
+                using (WikiaClient client = new WikiaClient(options.Site, UserAgent))
                 {
-                    Utils.WriteError("That is an invalid logon.");
-                    return;
+                    if (!client.Login(userName, password))
+                    {
+                        Utils.WriteError("That is an invalid logon.");
+                        return;
+                    }
+                    Purge(options, client);
                 }
-                Purge(options, client);
+            }
+            catch (OptionValidationException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
             }
         }
 
@@ -100,12 +107,30 @@ namespace RatingPurge
 
         private static void SaveRatings(Options options, RatingPage ratingsPage)
         {
-            string summary = $"Purged ratings by [{options.PurgeUserName}]";
+            ratingsPage.Save(EditSummary(options));
+        }
+
+        private static string EditSummary(Options options)
+        {
+            string summary = $"Purged ratings by {UserWikiText(options.PurgeUserName)}";
             if (options.Count >= 0)
                 summary += $" Count={options.Count}";
             if (options.Days >= 0)
                 summary += $" Days={options.Days}";
-            ratingsPage.Save(summary);
+            if (!string.IsNullOrEmpty(options.Comment))
+                summary += $" ({options.Comment})";
+            return summary;
+        }
+
+        private static string UserWikiText(string usernameOrIp)
+        {
+            string text;
+            if (Uri.CheckHostName(usernameOrIp) == UriHostNameType.IPv6 ||
+                    Regex.IsMatch(usernameOrIp, @"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"))
+                text = $"[[Special:Contributions/{usernameOrIp}|{usernameOrIp}]]";
+            else
+                text = $"[[User:{usernameOrIp}|{usernameOrIp}]]";
+            return text;
         }
 
         private static int PurgeUsersVotes(Options options, List<VoteTotal> voteTotals)
