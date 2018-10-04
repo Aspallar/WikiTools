@@ -9,7 +9,7 @@ namespace DeckRatings
 {
     class Program
     {
-        static readonly Regex commentRegex = new Regex(@"Rating for (.*) \((\d)\)");
+        static readonly Regex commentRegex = new Regex(@"Rating for (?:\[\[.*\|)?([^\]]+)(?:\]\])? \((\d)\)");
 
         static void Main(string[] args)
         {
