@@ -47,7 +47,7 @@ namespace DeckCards
                     Console.Error.WriteLine("Unable to log in.");
                     return;
                 }
-                Dictionary<string, List<string>> cards = wiki.GetCardsInDecks(ReadIgnoredDecks());
+                Dictionary<string, List<string>> cards = wiki.GetCardsInDecks(ReadIgnoredDecks(), ReadRemovedCards());
                 Console.Error.WriteLine(new string('=', 20));
                 string markup = Markup.GetMarkup(cards);
                 if (options.NoUpload)
@@ -120,6 +120,24 @@ namespace DeckCards
             }
             return cardNames;
         }
+
+        private static HashSet<string> ReadRemovedCards()
+        {
+            string line;
+            var removedCards = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\removedcards.txt";
+            if (File.Exists(filename))
+            {
+                Console.Error.WriteLine($"Reading removed cards from {filename}");
+                using (var sr = new StreamReader(filename))
+                {
+                    while ((line = sr.ReadLine()) != null)
+                        removedCards.Add(line.Trim());
+                }
+            }
+            return removedCards;
+        }
+
 
         private static HashSet<string> ReadIgnoredDecks()
         {

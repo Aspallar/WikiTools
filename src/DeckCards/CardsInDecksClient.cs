@@ -24,10 +24,10 @@ namespace DeckCards
             _batchSize = batchSize;
         }
 
-        public Dictionary<string, List<string>> GetCardsInDecks(HashSet<string> ignoredDecks)
+        public Dictionary<string, List<string>> GetCardsInDecks(HashSet<string> ignoredDecks, HashSet<string> removedCards)
         {
             var cards = new Dictionary<string, List<string>>();
-            foreach (var deck in GetDecks(ignoredDecks))
+            foreach (var deck in GetDecks(ignoredDecks, removedCards))
             {
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
@@ -51,7 +51,7 @@ namespace DeckCards
             return cards;
         }
 
-        private IEnumerable<Deck> GetDecks(HashSet<string> ignoredDecks)
+        private IEnumerable<Deck> GetDecks(HashSet<string> ignoredDecks, HashSet<string> removedCards)
         {
             var apfrom = "";
             var decks = new XmlDocument();
@@ -92,7 +92,14 @@ namespace DeckCards
                     foreach (XmlNode deckPage in deckContents.SelectNodes("/api/query/pages/page"))
                     {
                         List<string> cards = GetCards(deckPage.SelectSingleNode("revisions/rev").InnerText);
-                        yield return new Deck(deckPage.Attributes["title"].Value, cards);
+                        if (!cards.Any(x => removedCards.Contains(x)))
+                        {
+                            yield return new Deck(deckPage.Attributes["title"].Value, cards);
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine(deckPage.Attributes["title"].Value);
+                        }
                     }
                 }
             } while (!string.IsNullOrEmpty(apfrom));
