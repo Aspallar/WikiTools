@@ -42,22 +42,44 @@ namespace RatingPurge
         {
             try
             {
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 options.Validate();
-                string userName = GetUsername(options);
-                string password = GetPassword(options);
-                using (WikiaClient client = new WikiaClient(options.Site, UserAgent))
-                {
-                    if (!client.Login(userName, password))
-                    {
-                        Utils.WriteError("That is an invalid logon.");
-                        return;
-                    }
-                    Purge(options, client);
-                }
+                if (options.Show)
+                    ShowPurges(options);
+                else
+                    LoginAndPurge(options);
             }
             catch (OptionValidationException ex)
             {
                 Console.Error.WriteLine(ex.Message);
+            }
+        }
+
+        private static void LoginAndPurge(Options options)
+        {
+            string userName = GetUsername(options);
+            string password = GetPassword(options);
+            using (WikiaClient client = new WikiaClient(options.Site, UserAgent))
+            {
+                if (client.Login(userName, password))
+                    Purge(options, client);
+                else
+                    Utils.WriteError("That is an invalid logon.");
+            }
+        }
+
+        private static void ShowPurges(Options options)
+        {
+            var ratings = new RatingsHistory(options.Site, options.RatingsPage, options.Days);
+            foreach (XmlNode revision in ratings.Items)
+            {
+                string comment = revision.Attributes["comment"].Value;
+                Match commentMatch = commentRegex.Match(comment);
+                if (!commentMatch.Success)
+                {
+                    Console.WriteLine($"{revision.Attributes["timestamp"].Value} {comment}");
+                }
             }
         }
 

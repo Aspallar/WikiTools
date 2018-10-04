@@ -7,7 +7,7 @@ namespace RatingPurge
 {
     internal class Options
     {
-        [Value(0, HelpText = "Username to purge from votes.", Required = true)]
+        [Value(0, HelpText = "Username to purge from votes.")]
         public string PurgeUserName { get; set; }
 
         [Option(Default = "https://magicarena.wikia.com", HelpText = "Wikia site.")]
@@ -34,8 +34,13 @@ namespace RatingPurge
         [Option(HelpText = "Comment to add to edit summary.")]
         public string Comment { get; set; }
 
+        [Option(HelpText = "Show previous purges.")]
+        public bool Show { get; internal set; }
+
         public void Validate()
         {
+            if (!Show && string.IsNullOrEmpty(PurgeUserName))
+                throw new OptionValidationException($"No username to purge specified");
             if (!Uri.IsWellFormedUriString(Site, UriKind.Absolute))
                 throw new OptionValidationException($"Invalid value for --site, {Site}");
         }
