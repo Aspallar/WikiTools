@@ -1,16 +1,14 @@
 ﻿using CsvHelper;
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using System.Xml;
 using CommandLine;
+using WikiToolsShared;
 
 namespace DeckRatings
 {
     class Program
     {
-        static readonly Regex commentRegex = new Regex(@"Rating for (?:\[\[.*\|)?([^\]]+)(?:\]\])? \((\d)\)");
-
         static void Main(string[] args)
         {
             Parser.Default.ParseArguments<Options>(args)
@@ -46,14 +44,13 @@ namespace DeckRatings
 
         private static void GetVote(List<Vote> votes, List<InvalidVote> invalidVotes, XmlNode rev)
         {
-            string comment = rev.Attributes["comment"].Value;
-            Match commentMatch = commentRegex.Match(comment);
-            if (commentMatch.Success)
+            var rating = new RatingsEntry(rev.Attributes["comment"].Value);
+            if (rating.IsValid)
             {
                 var vote = new Vote
                 {
-                    Score = int.Parse(commentMatch.Groups[2].Value),
-                    DeckName = commentMatch.Groups[1].Value,
+                    Score = int.Parse(rating.Vote),
+                    DeckName = rating.DeckName,
                     User = rev.Attributes["user"].Value,
                     Timestamp = DateTimeOffset.Parse(rev.Attributes["timestamp"].Value),
                     RevId = rev.Attributes["revid"].Value

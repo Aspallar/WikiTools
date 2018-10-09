@@ -66,6 +66,12 @@
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WikiToolsShared\WikiToolsShared.csproj">
+      <Project>{59D9FA86-9352-4E25-82C5-48D252228A5F}</Project>
+      <Name>WikiToolsShared</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

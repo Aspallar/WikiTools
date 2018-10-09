@@ -15,7 +15,7 @@ namespace RatingPurge
 {
     class Program
     {
-        static readonly Regex commentRegex = new Regex(@"Rating for (.*) \((\d)\)");
+        //static readonly Regex commentRegex = new Regex(@"Rating for (?:\[\[.*\|)?([^\]]+)(?:\]\])? \((\d)\)");
         
         static void Main(string[] args)
         {
@@ -75,11 +75,8 @@ namespace RatingPurge
             foreach (XmlNode revision in ratings.Items)
             {
                 string comment = revision.Attributes["comment"].Value;
-                Match commentMatch = commentRegex.Match(comment);
-                if (!commentMatch.Success)
-                {
+                if (!RatingsEntry.IsEntry(comment))
                     Console.WriteLine($"{revision.Attributes["timestamp"].Value} {comment}");
-                }
             }
         }
 
@@ -223,18 +220,19 @@ namespace RatingPurge
 
         private static Vote GetVote(XmlNode rev)
         {
-            string comment = rev.Attributes["comment"].Value;
-            Match commentMatch = commentRegex.Match(comment);
-            if (!commentMatch.Success)
-                return null;
-            return new Vote
+            var rating = new RatingsEntry(rev.Attributes["comment"].Value);
+            if (rating.IsValid)
             {
-                Score = int.Parse(commentMatch.Groups[2].Value),
-                DeckName = commentMatch.Groups[1].Value,
-                User = rev.Attributes["user"].Value,
-                Timestamp = DateTimeOffset.Parse(rev.Attributes["timestamp"].Value),
-                RevId = rev.Attributes["revid"].Value
-            };
+                return new Vote
+                {
+                    Score = int.Parse(rating.Vote),
+                    DeckName = rating.DeckName,
+                    User = rev.Attributes["user"].Value,
+                    Timestamp = DateTimeOffset.Parse(rev.Attributes["timestamp"].Value),
+                    RevId = rev.Attributes["revid"].Value
+                };
+            }
+            else return null;
         }
 
         private static string GetPassword(Options options)
