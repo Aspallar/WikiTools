@@ -25,6 +25,7 @@ copy src\DeckCards\bin\Release\cardnames.txt Deploy\.
 copy src\DeckCards\bin\Release\ignoreddecks.txt Deploy\.
 copy src\DeckCards\bin\Release\removedcards.txt Deploy\.
 copy src\FetchAllCardBrowsingPages\bin\Release\FetchAllCardBrowsingPages.exe Deploy\.
+copy src\WikiActivity\bin\Release\WikiActivity.exe Deploy\.
 goto :eof
 
 :wrongfolder
