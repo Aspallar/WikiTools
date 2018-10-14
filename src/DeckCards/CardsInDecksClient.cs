@@ -26,6 +26,7 @@ namespace DeckCards
 
         public Dictionary<string, List<string>> GetCardsInDecks(HashSet<string> ignoredDecks, HashSet<string> removedCards)
         {
+            AddCandidatesForDeletion(ignoredDecks);
             var cards = new Dictionary<string, List<string>>();
             foreach (var deck in GetDecks(ignoredDecks, removedCards))
             {
@@ -49,6 +50,26 @@ namespace DeckCards
                 }
             }
             return cards;
+        }
+
+        private void AddCandidatesForDeletion(HashSet<string> ignoredDecks)
+        {
+            var deleteCandidates = new XmlDocument();
+            var url = ApiQuery(new Dictionary<string, string>
+            {
+                { "list", "categorymembers" },
+                { "cmlimit", "500" },
+                { "cmtitle", "Category:Candidates for deletion" },
+                { "cb", DateTime.Now.Ticks.ToString() },
+            });
+            GetXmlResponse(url, deleteCandidates);
+            TerminateOnErrorOrWarning(deleteCandidates, "Error while obtaining deletion candidates");
+            foreach (XmlNode candidate in deleteCandidates.SelectNodes("/api/query/categorymembers/cm"))
+            {
+                string title = candidate.Attributes["title"].Value;
+                if (title.StartsWith("Decks/"))
+                    ignoredDecks.Add(title);
+            }
         }
 
         private IEnumerable<Deck> GetDecks(HashSet<string> ignoredDecks, HashSet<string> removedCards)

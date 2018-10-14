@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using WikiaClientLibrary;
 
@@ -17,8 +18,10 @@ namespace DeckCards
             try
             {
 #endif
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 Parser.Default.ParseArguments<Options>(args)
-                    .WithParsed(options => Run(options));
+                        .WithParsed(options => Run(options));
 #if !DEBUG
             }
             catch (Exception ex)
