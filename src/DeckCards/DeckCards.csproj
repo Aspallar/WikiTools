@@ -57,6 +57,7 @@
     <Compile Include="Encryption.cs" />
     <Compile Include="Markup.cs" />
     <Compile Include="Options.cs" />
+    <Compile Include="OptionsException.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
@@ -91,6 +92,10 @@
     <ProjectReference Include="..\WikiaClientLibrary\WikiaClientLibrary.csproj">
       <Project>{955dfa07-f730-4ab2-992d-3ca920df2a3a}</Project>
       <Name>WikiaClientLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\WikiToolsShared\WikiToolsShared.csproj">
+      <Project>{59D9FA86-9352-4E25-82C5-48D252228A5F}</Project>
+      <Name>WikiToolsShared</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

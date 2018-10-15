@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using WikiaClientLibrary;
 
@@ -24,11 +23,11 @@ namespace DeckCards
             _batchSize = batchSize;
         }
 
-        public Dictionary<string, List<string>> GetCardsInDecks(HashSet<string> ignoredDecks, HashSet<string> removedCards)
+        public Dictionary<string, List<string>> GetCardsInDecks(List<string> ignoredDecks, HashSet<string> removedCards)
         {
-            AddCandidatesForDeletion(ignoredDecks);
+            HashSet<string> expandedIgnoredDecks = ExpandIgnoredDecks(ignoredDecks);
             var cards = new Dictionary<string, List<string>>();
-            foreach (var deck in GetDecks(ignoredDecks, removedCards))
+            foreach (var deck in GetDecks(expandedIgnoredDecks, removedCards))
             {
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
@@ -52,23 +51,37 @@ namespace DeckCards
             return cards;
         }
 
-        private void AddCandidatesForDeletion(HashSet<string> ignoredDecks)
+        private HashSet<string> ExpandIgnoredDecks(List<string> ignoredDecks)
         {
-            var deleteCandidates = new XmlDocument();
+            var expanded = new HashSet<string>();
+            foreach (string entry in ignoredDecks)
+            {
+                if (entry.StartsWith("Category:"))
+                    AddCategoryMembers(entry, expanded);
+                else
+                    expanded.Add("Decks/" + entry);
+            }
+            return expanded;
+        }
+
+        private void AddCategoryMembers(string category, HashSet<string> expanded)
+        {
+            var members = new XmlDocument();
             var url = ApiQuery(new Dictionary<string, string>
             {
                 { "list", "categorymembers" },
                 { "cmlimit", "500" },
-                { "cmtitle", "Category:Candidates for deletion" },
+                { "cmtitle", category },
                 { "cb", DateTime.Now.Ticks.ToString() },
             });
-            GetXmlResponse(url, deleteCandidates);
-            TerminateOnErrorOrWarning(deleteCandidates, "Error while obtaining deletion candidates");
-            foreach (XmlNode candidate in deleteCandidates.SelectNodes("/api/query/categorymembers/cm"))
+            GetXmlResponse(url, members);
+            TerminateOnErrorOrWarning(members, "Error while fetching category members for " + category);
+            TerminateIfTooManyMembers(members, category);
+            foreach (XmlNode candidate in members.SelectNodes("/api/query/categorymembers/cm"))
             {
                 string title = candidate.Attributes["title"].Value;
                 if (title.StartsWith("Decks/"))
-                    ignoredDecks.Add(title);
+                    expanded.Add(title);
             }
         }
 
@@ -94,36 +107,35 @@ namespace DeckCards
                 var deckNodes = deckPages.GetEnumerator();
                 while (deckNodes.MoveNext())
                 {
-                    var pageids = new List<string>();
-                    int k = _batchSize;
-                    do
-                    {
-                        XmlNode deck = (XmlNode)deckNodes.Current;
-                        if (!ignoredDecks.Contains(deck.Attributes["title"].Value))
-                            pageids.Add(deck.Attributes["pageid"].Value);
-                    } while (--k != 0 && deckNodes.MoveNext());
                     var revisionUrl = ApiQuery(new Dictionary<string, string>
                     {
                         { "prop", "revisions" },
                         { "rvprop", "content" },
-                        { "pageids", string.Join("|", pageids) },
+                        { "pageids", PageIdBatch(ignoredDecks, deckNodes) },
                     });
                     GetXmlResponse(revisionUrl, deckContents);
                     TerminateOnErrorOrWarning(deckContents, "Error while obtaining deck contents.");
                     foreach (XmlNode deckPage in deckContents.SelectNodes("/api/query/pages/page"))
                     {
                         List<string> cards = GetCards(deckPage.SelectSingleNode("revisions/rev").InnerText);
-                        if (!cards.Any(x => removedCards.Contains(x)))
-                        {
+                        if (!cards.Any(card => removedCards.Contains(card)))
                             yield return new Deck(deckPage.Attributes["title"].Value, cards);
-                        }
-                        else
-                        {
-                            System.Diagnostics.Debug.WriteLine(deckPage.Attributes["title"].Value);
-                        }
                     }
                 }
             } while (!string.IsNullOrEmpty(apfrom));
+        }
+
+        private string PageIdBatch(HashSet<string> ignoredDecks, System.Collections.IEnumerator deckNodes)
+        {
+            var pageids = new List<string>();
+            int k = _batchSize;
+            do
+            {
+                XmlNode deck = (XmlNode)deckNodes.Current;
+                if (!ignoredDecks.Contains(deck.Attributes["title"].Value))
+                    pageids.Add(deck.Attributes["pageid"].Value);
+            } while (--k != 0 && deckNodes.MoveNext());
+            return string.Join("|", pageids);
         }
 
         private static Regex cardRegex = new Regex(@"\d+\s+([^\(/]+)");
@@ -198,5 +210,15 @@ namespace DeckCards
                 Environment.Exit(1);
             }
         }
+
+        private void TerminateIfTooManyMembers(XmlDocument members, string category)
+        {
+            if (members.SelectSingleNode("/api/query-continue") != null)
+            {
+                Console.WriteLine($"Category has too many members to use in ignored decks.");
+                Environment.Exit(1);
+            }
+        }
+
     }
 }

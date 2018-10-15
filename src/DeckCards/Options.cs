@@ -1,14 +1,17 @@
-﻿using CommandLine;
+﻿using System;
+using CommandLine;
 
 namespace DeckCards
 {
     internal class Options
     {
+        private const int maxBatch = 50;
+
         [Option(HelpText = "Don't upload, just write results to console")]
         public bool NoUpload { get; set; }
 
         [Option(HelpText = "Username")]
-        public string UserName { get; set; }
+        public string User { get; set; }
 
         [Option(HelpText = "Password")]
         public string Password { get; set; }
@@ -22,15 +25,15 @@ namespace DeckCards
         [Option(Default = "Cards In Decks", HelpText = "Title of page to update")]
         public string Target { get; set; }
 
-        [Option(Default = 10, HelpText = "Number of decks to fetch in each batch")]
+        [Option(Default = 50, HelpText = "Number of decks to fetch in each batch.")]
         public int Batch { get; set; }
 
-        public void SetDefaults()
+        private void SetCredentials()
         {
             var props = Properties.Settings.Default;
-            if (string.IsNullOrEmpty(UserName))
+            if (string.IsNullOrEmpty(User))
             {
-                UserName = props.username;
+                User = props.username;
             }
             if (string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(props.password))
             {
@@ -38,10 +41,21 @@ namespace DeckCards
             }
         }
 
-        public void SaveDefaults()
+        public void Validate()
+        {
+            if (Batch <= 0 || Batch > maxBatch)
+                throw new OptionsException($"Value for --batch should be 1 to {maxBatch} inclusive.");
+            SetCredentials();
+            if (string.IsNullOrEmpty(User))
+                throw new OptionsException("No user name supplied.");
+            if (string.IsNullOrEmpty(Password))
+                throw new OptionsException("No password supplied.");
+        }
+
+        public void SaveCredentials()
         {
             var props = Properties.Settings.Default;
-            props.username = UserName ?? "";
+            props.username = User ?? "";
             props.password = Encryption.Encrypt(Password ?? "");
             props.Save();
         }

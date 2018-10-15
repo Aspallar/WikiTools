@@ -14,16 +14,18 @@ namespace DeckCards
 
         static void Main(string[] args)
         {
-#if !DEBUG
             try
             {
-#endif
                 ServicePointManager.Expect100Continue = true;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 Parser.Default.ParseArguments<Options>(args)
-                        .WithParsed(options => Run(options));
-#if !DEBUG
+                    .WithParsed(options => Run(options));
             }
+            catch (OptionsException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+#if !DEBUG
             catch (Exception ex)
             {
                 Console.Error.WriteLine("Unexpected Error");
@@ -34,18 +36,18 @@ namespace DeckCards
 
         private static void Run(Options options)
         {
+            options.Validate();
             if (options.Save)
             {
-                options.SaveDefaults();
+                options.SaveCredentials();
                 Console.WriteLine("Username and password saved.");
                 return;
             }
-            options.SetDefaults();
             DateTime runTime = DateTime.Now.ToUniversalTime();
 
             using (wiki = new CardsInDecksClient(options.Site, UserAgent(), ReadCardNames(), options.Batch))
             {
-                if (!wiki.Login(options.UserName, options.Password))
+                if (!wiki.Login(options.User, options.Password))
                 {
                     Console.Error.WriteLine("Unable to log in.");
                     return;
@@ -111,7 +113,7 @@ namespace DeckCards
         {
             string line;
             var cardNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\cardnames.txt";
+            string filename = FullPath("cardnames.txt");
             Console.Error.WriteLine($"Reading card names from {filename}");
             using (var sr = new StreamReader(filename))
             {
@@ -128,7 +130,7 @@ namespace DeckCards
         {
             string line;
             var removedCards = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\removedcards.txt";
+            string filename = FullPath("removedcards.txt");
             if (File.Exists(filename))
             {
                 Console.Error.WriteLine($"Reading removed cards from {filename}");
@@ -142,11 +144,11 @@ namespace DeckCards
         }
 
 
-        private static HashSet<string> ReadIgnoredDecks()
+        private static List<string> ReadIgnoredDecks()
         {
             string line;
-            var ignoredDecks = new HashSet<string>();
-            string filename = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + @"\ignoreddecks.txt";
+            var ignoredDecks = new List<string>();
+            string filename = FullPath("ignoreddecks.txt");
             if (File.Exists(filename))
             {
                 Console.Error.WriteLine($"Reading ignored decks from {filename}");
@@ -155,14 +157,16 @@ namespace DeckCards
                     while ((line = sr.ReadLine()) != null)
                     {
                         if (!string.IsNullOrWhiteSpace(line))
-                        {
-                            line = line.TrimEnd();
-                            ignoredDecks.Add("Decks/" + line);
-                        }
+                            ignoredDecks.Add(line.TrimEnd());
                     }
                 }
             }
             return ignoredDecks;
+        }
+
+        private static string FullPath(string fileName)
+        {
+            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + fileName;
         }
 
         private static string UserAgent()
