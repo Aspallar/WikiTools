@@ -10,7 +10,7 @@ namespace WikiActivity
         [Option]
         public bool IpOnly { get; internal set; }
 
-        [Option(Default = 10)]
+        [Option(Default = 50)]
         public int Limit { get; internal set; }
 
         [Option]
