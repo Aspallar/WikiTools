@@ -14,10 +14,14 @@ namespace TourneyPairings
             NameMap map = new NameMap();
             if (File.Exists(fileName))
             {
-                string[] lines = File.ReadAllLines(fileName, encoding);
+                IEnumerable<string> lines = File.ReadAllLines(fileName, encoding)
+                    .Select(line => line.Trim())
+                    .Where(line => line.Length > 0);
                 foreach (string line in lines)
                 {
                     string[] split = line.Split('|');
+                    if (split.Length != 2)
+                        throw new InvalidNameMap(line);
                     map.Add(split[1], split[0]);
                 }
             }

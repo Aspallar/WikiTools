@@ -60,6 +60,7 @@
     <Compile Include="InvalidConfig.cs" />
     <Compile Include="InvalidEncoding.cs" />
     <Compile Include="InvalidInputFileFormat.cs" />
+    <Compile Include="InvalidNameMap.cs" />
     <Compile Include="NameMap.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="Program.cs" />

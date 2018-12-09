@@ -24,7 +24,8 @@ namespace TourneyPairings
             when (ex is FileNotFoundException 
                     || ex is InvalidInputFileFormat
                     || ex is InvalidConfig
-                    || ex is InvalidEncoding)
+                    || ex is InvalidEncoding
+                    || ex is InvalidNameMap)
             {
                 Console.Error.WriteLine(ex.Message);
             }
