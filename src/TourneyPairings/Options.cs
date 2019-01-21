@@ -19,6 +19,9 @@ namespace TourneyPairings
         [Option(HelpText = "Encoding of input file")]
         public string Enc { get; set; }
 
+        [Option(HelpText = "Process a scores file")]
+        public bool Scores { get; set; }
+
         public Encoding InputEncoding
         {
             get

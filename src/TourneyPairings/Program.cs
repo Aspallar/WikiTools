@@ -39,6 +39,43 @@ namespace TourneyPairings
 
         private static void Run(Options options)
         {
+            if (options.Scores)
+                Scores(options);
+            else
+                Pairings(options);
+        }
+
+        private static void Scores(Options options)
+        {
+            IEnumerable<string> lines = File.ReadAllLines(options.InputFileName, options.InputEncoding).Skip(1);
+            Config config = Config.LoadFromFile(options.Config, options.InputFileName);
+            NameMap nameMap = NameMap.LoadFromFile(AppDomain.CurrentDomain.BaseDirectory + "namemap.txt", encoding);
+            var warnings = new List<string>();
+            var gameRegex = new Regex(@"^\[\s*(\d+)\]\s+(.*)", RegexOptions.Singleline);
+            string[] scoreSpliter = { ") - " };
+            foreach (string line in lines)
+            {
+                Match gameMatch = gameRegex.Match(line);
+                if (!gameMatch.Success)
+                    throw new InvalidInputFileFormat(line);
+                string gameNumber = gameMatch.Groups[1].Value;
+                string rest = gameMatch.Groups[2].Value;
+                Console.WriteLine(gameNumber);
+                Console.WriteLine(rest);
+                string[] players = rest.Split(scoreSpliter, StringSplitOptions.None);
+                players[0] += ")";
+                Console.WriteLine(players[0]);
+                Console.WriteLine(players[1]);
+                int pos = players[0].LastIndexOf(' ');
+                string name = players[0].Substring(0, pos).Trim();
+                string score = players[0].Substring(pos + 1);
+                Console.WriteLine(name);
+                Console.WriteLine(score);
+            }
+        }
+
+        private static void Pairings(Options options)
+        {
             IEnumerable<string> lines = File.ReadAllLines(options.InputFileName, options.InputEncoding).Skip(1);
             Config config = Config.LoadFromFile(options.Config, options.InputFileName);
             NameMap nameMap = NameMap.LoadFromFile(AppDomain.CurrentDomain.BaseDirectory + "namemap.txt", encoding);
