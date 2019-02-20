@@ -28,6 +28,8 @@ copy src\FetchAllCardBrowsingPages\bin\Release\FetchAllCardBrowsingPages.exe Dep
 copy src\WikiActivity\bin\Release\WikiActivity.exe Deploy\.
 copy src\TourneyPairings\bin\Release\TourneyPairings.exe Deploy\.
 copy src\TourneyPairings\bin\Release\namemap.txt Deploy\.
+copy src\WamData\bin\Release\WamData.exe Deploy\.
+copy src\WamData\bin\Release\AngleSharp.dll Deploy\.
 goto :eof
 
 :wrongfolder
