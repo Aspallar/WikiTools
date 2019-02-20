@@ -102,7 +102,7 @@ namespace FetchAllCardBrowsingPages
         private static string UserAgent()
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"FetchAllCardBrowsingPages/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.wikia.com)";
+            return $"FetchAllCardBrowsingPages/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.fandom.com)";
         }
     }
 }

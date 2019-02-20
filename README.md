@@ -1,6 +1,6 @@
 # WikiTools
 
- A collection of tools written to help maintain the [Magic Arena Wiki](http://magicarena.wikia.com).
+ A collection of tools written to help maintain the [Magic Arena Wiki](http://magicarena.fandom.com).
 
 ### CardNames
 Attempts to find all card names in text, including those that have been miss-spelled, correct the

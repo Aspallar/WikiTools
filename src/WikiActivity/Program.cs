@@ -80,7 +80,7 @@ namespace WikiActivity
 
         static IEnumerable<Activity> GetRecentActivity(int numItems)
         {
-            const string urlBase = "https://magicarena.wikia.com/api.php?action=query&list=recentchanges&rcprop=title|user|timestamp|comment&format=xml&rclimit=";
+            const string urlBase = "https://magicarena.fandom.com/api.php?action=query&list=recentchanges&rcprop=title|user|timestamp|comment&format=xml&rclimit=";
             var doc = new XmlDocument();
             string rcStart = null;
             do

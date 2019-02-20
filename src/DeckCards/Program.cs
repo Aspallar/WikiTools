@@ -172,7 +172,7 @@ namespace DeckCards
         private static string UserAgent()
         {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"DeckCards/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.wikia.com)";
+            return $"DeckCards/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.fandom.com)";
         }
     }
 }

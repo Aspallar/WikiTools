@@ -24,7 +24,7 @@ namespace RatingPurge
         {
             // using this convoluted method because we want to indent by a single space
             // in order to keep to the same format as used by 
-            // http://magicarena.wikia.com/wiki/MediaWiki:Ratings.js
+            // http://magicarena.fandom.com/wiki/MediaWiki:Ratings.js
 
             MemoryStream memoryStream = new MemoryStream();
             using (TextWriter textWriter = new StreamWriter(memoryStream))

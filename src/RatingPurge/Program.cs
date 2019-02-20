@@ -259,7 +259,7 @@ namespace RatingPurge
             get
             {
                 Version ver = Assembly.GetExecutingAssembly().GetName().Version;
-                return $"RatingsPurge/{ver.Major}.{ver.Minor}.{ver.Build} (Contact: Admin at http://magicarena.wikia.com/wiki/Special:ListUsers/sysop)";
+                return $"RatingsPurge/{ver.Major}.{ver.Minor}.{ver.Build} (Contact: Admin at http://magicarena.fandom.com/wiki/Special:ListUsers/sysop)";
             }
         }
     }

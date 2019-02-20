@@ -18,7 +18,7 @@ namespace UploadFiles
         [Value(0, HelpText = "File pattern for files to upload e.g. images\\*.png")]
         public string FilePattern { get; set; }
 
-        [Option(HelpText = "Wikia site (e.g. http://mywiki.wikia.com). Defaults to setting in config file.")]
+        [Option(HelpText = "Fandom site (e.g. http://mywiki.fandom.com). Defaults to setting in config file.")]
         public string Site
         {
             get { return _site ?? Properties.Settings.Default.DefaultSite; }
@@ -153,13 +153,13 @@ namespace UploadFiles
                 throw new OptionsException($"No site specified. Use --site or edit the .config file to configure a default site. {help}");
 
             if (!Uri.IsWellFormedUriString(Site, UriKind.Absolute))
-                throw new OptionsException($"Site \"{Site}\" is not a valid url. An example of a valid site url is http://mywiki.wikia.com");
+                throw new OptionsException($"Site \"{Site}\" is not a valid url. An example of a valid site url is http://mywiki.fandom.com");
 
             if (Site.EndsWith("/"))
                 throw new OptionsException($"Invalid site {Site}. Don't end the site name with a '/'");
 
             if (!Site.ToUpperInvariant().StartsWith("HTTP"))
-                throw new OptionsException($"Site {Site} is invalid. Only http is allowed. e.g http://mywiki.wikia.com");
+                throw new OptionsException($"Site {Site} is invalid. Only http is allowed. e.g http://mywiki.fandom.com");
         }
     }
 }

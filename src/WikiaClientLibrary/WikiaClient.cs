@@ -44,7 +44,7 @@ namespace WikiaClientLibrary
                 response = AttemptLogin(userData);
                 return response.Result == ResponseResults.Success;
             }
-            catch (WebException ex)
+            catch (WebException)
             {
                 return false;
             }
@@ -259,14 +259,20 @@ namespace WikiaClientLibrary
             return Site + "api.php?action=query" + query;
         }
 
-        public void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
-            if (_client != null)
+            if (disposing && _client != null)
             {
                 CancelAsync();
                 _client.Dispose();
                 _client = null;
             }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

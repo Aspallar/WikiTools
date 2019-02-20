@@ -10,7 +10,7 @@ namespace RatingPurge
         [Value(0, HelpText = "Username to purge from votes.")]
         public string PurgeUserName { get; set; }
 
-        [Option(Default = "https://magicarena.wikia.com", HelpText = "Wikia site.")]
+        [Option(Default = "https://magicarena.fandom.com", HelpText = "Wikia site.")]
         public string Site { get; set; }
 
         [Option(Default = "Ratings:DeckRatings", HelpText = "name of page containing ratings data.")]
