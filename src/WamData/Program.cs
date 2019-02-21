@@ -153,8 +153,7 @@ namespace WamData
         private static async Task<IHtmlDocument> GetDocument(HtmlParser parser, HttpClient client, DateTimeOffset date)
         {
             string url = urlBase + date.ToWamTime().ToString();
-            string content = await client.GetStringAsync(urlBase + date.ToWamTime().ToString())
-                .ConfigureAwait(false);
+            string content = await client.GetStringAsync(url).ConfigureAwait(false);
             var doc = parser.Parse(content);
             return doc;
         }
