@@ -10,7 +10,7 @@ namespace GetRatings
         [Option(HelpText = "Output JSON instead of Csv")]
         public bool Json { get; set; }
 
-        [Option(Default = "http://magicarena.fandom.com", HelpText = "Wikia site")]
+        [Option(Default = "http://magicarena.fandom.com", HelpText = "Fandom site")]
         public string Site { get; set; }
 
         [Option(Default = "Ratings:DeckRatings", HelpText = "name of page containing ratings data")]
