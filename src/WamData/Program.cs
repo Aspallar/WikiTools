@@ -4,10 +4,12 @@ using System;
 using System.Collections.Generic;
 using CommandLine;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using System.Net.Http;
 using AngleSharp.Dom;
+using System.Threading;
+using WikiToolsShared;
+using System.Reflection;
 
 namespace WamData
 {
@@ -15,16 +17,15 @@ namespace WamData
     {
         static void Main(string[] args)
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(options => Run(options));
         }
 
+        static string userAgent;
+        static int cancelCount = 0;
         static string urlBase;
         static string siteSearchTerm;
-        static DateTimeOffset next;
-        static object nextLock = new object();
+        static DaysRange range;
         static DateTimeOffset endDate;
         static List<WamItem> results = new List<WamItem>();
         static List<WamError> errors = new List<WamError>();
@@ -33,15 +34,24 @@ namespace WamData
         {
             try
             {
+                if (options.MoreHelp)
+                {
+                    Console.WriteLine(Help.HelpText);
+                    return;
+                }
                 options.Validate();
-                ShowDateRange(options.Name, options.StartDate, options.EndDate);
-                urlBase = $"https://community.wikia.com/wiki/WAM?verticalId={options.VerticalType}&langCode=&searchPhrase={options.Name}&date=";
+                ShowInitialMessage(options.Name, options.StartDate, options.EndDate);
+                SetUserAgent();
+                urlBase = UrlBase(options.Name, options.VerticalType);
                 siteSearchTerm = "https://" + options.Name;
-                next = options.StartDate;
+                range = new DaysRange(options.StartDate);
                 endDate = options.EndDate;
                 RunFetchWamDataTasks(options.FirePower).GetAwaiter().GetResult();
-                WriteResults(options.Verbose);
-                WriteErrors();
+                if (cancelCount == 0)
+                {
+                    WriteResults(options.Verbose, options.ColumnFlags);
+                    WriteErrors();
+                }
             }
             catch (OptionsException ex)
             {
@@ -49,7 +59,13 @@ namespace WamData
             }
         }
 
-        private static void ShowDateRange(string name, DateTimeOffset startDate, DateTimeOffset endDate)
+        private static void SetUserAgent()
+        {
+            var v = Assembly.GetExecutingAssembly().GetName().Version;
+            userAgent = $"WamData/{v.Major}.{v.Minor}.{v.Build}";
+        }
+
+        private static void ShowInitialMessage(string name, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             const string format = "MMMM d, yyyy";
             int days = (int)(endDate - startDate).TotalDays + 1;
@@ -67,15 +83,31 @@ namespace WamData
             }
         }
 
-        private static void WriteResults(bool verbose)
+        private static void WriteResults(bool verbose, ColumnFlags flags)
         {
+            string format = MakeFormatString(flags);
             foreach (var item in results.OrderBy(x => x.Date))
             {
-                string output = $"{item.Date.ToWamTime()},{FormatDate(item.Date)},{item.Rank},{item.Score}";
+                var output = string.Format(format, item.Date.ToWamTime(), FormatDate(item.Date), item.Rank, item.Score);
                 Console.WriteLine(output);
                 if (verbose && Console.IsOutputRedirected)
                     Console.Error.WriteLine(output);
             }
+        }
+
+        private static string MakeFormatString(ColumnFlags flags)
+        {
+            string format = "";
+            if ((flags & ColumnFlags.WamDate) != 0)
+                format += "{0},";
+            if ((flags & ColumnFlags.Date) != 0)
+                format += "{1},";
+            if ((flags & ColumnFlags.Rank) != 0)
+                format += "{2},";
+            if ((flags & ColumnFlags.Score) != 0)
+                format += "{3},";
+            format = format.Substring(0, format.Length - 1);
+            return format;
         }
 
         private static async Task RunFetchWamDataTasks(int numTasks)
@@ -87,35 +119,26 @@ namespace WamData
             await allTasks;
         }
 
-        private static DateTimeOffset NextDate()
-        {
-            DateTimeOffset nextDate;
-            lock (nextLock)
-            {
-                nextDate = next;
-                next = next.AddDays(1);
-            }
-            return nextDate;
-        }
-
         private static async Task GetWamData()
         {
             HtmlParser parser = new HtmlParser();
             using (var client = CreateClient())
             {
-                while (true)
+                while (cancelCount == 0)
                 {
-                    DateTimeOffset date = NextDate();
+                    DateTimeOffset date = range.Next();
                     if (date > endDate)
                         break; // while true
                     try
                     {
-                        var doc = await GetDocument(parser, client, date);
+                        var doc = await GetDocument(parser, client, date).ConfigureAwait(false);
+                        TerminateIfMoreThanOnePage(doc, date);
                         ProcessDocument(date, doc);
                     }
                     catch (HttpRequestException ex)
                     {
                         AddError(date, ex.InnerException == null ? ex.Message : ex.InnerException.Message);
+                        AddResult(date, "", "");
                     }
                 }
             }
@@ -158,6 +181,23 @@ namespace WamData
             return doc;
         }
 
+        private static void TerminateIfMoreThanOnePage(IHtmlDocument doc, DateTimeOffset date)
+        {
+            var pageDiv = doc.QuerySelector("div.wikia-paginator");
+            if (pageDiv != null)
+            {
+                int count = Interlocked.Increment(ref cancelCount);
+                if (count == 1)
+                {
+                    var pages = pageDiv.QuerySelectorAll("a.paginator-page")?.Last()?.GetAttribute("data-page") ?? "More than one";
+                    Console.Error.WriteLine($"Holy {Utils.RobinSays()} Batman!");
+                    Console.Error.WriteLine($"{pages} pages of results were returned for {date.ToWamHumanTime()}.");
+                    Console.Error.WriteLine("This probably means that your --name was not specific enough.");
+                    Environment.Exit(1);
+                }
+            }
+        }
+
         private static void AddResult(DateTimeOffset date, string rank, string score)
         {
             var result = new WamItem
@@ -193,8 +233,14 @@ namespace WamData
         private static HttpClient CreateClient()
         {
             HttpClient client = new HttpClient();
-            client.DefaultRequestHeaders.Add("User-Agent", "WamData/1.0");
+            client.DefaultRequestHeaders.Add("User-Agent", userAgent);
             return client;
+        }
+
+        private static string UrlBase(string name, int verticalId)
+        {
+            string url = Properties.Settings.Default.UrlFormat;
+            return string.Format(url, name, verticalId);
         }
     }
 }

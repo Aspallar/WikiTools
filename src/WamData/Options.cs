@@ -1,5 +1,7 @@
 ﻿using CommandLine;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 
@@ -25,6 +27,12 @@ namespace WamData
         [Option(Default = 10, HelpText = "The max number of simultaneous requests (1 to 200)")]
         public int FirePower { get; set; }
 
+        [Option(HelpText = "Display additional help.")]
+        public bool MoreHelp { get; set; }
+
+        [Option(HelpText = "List of columns to include in output. wamdate, date, rank, score.")]
+        public IEnumerable<string> Columns { get; set; }
+
         private int _verticalType;
         public int VerticalType => _verticalType;
 
@@ -33,6 +41,9 @@ namespace WamData
 
         private DateTimeOffset _endDate;
         public DateTimeOffset EndDate => _endDate;
+
+        private ColumnFlags _columnFlags;
+        public ColumnFlags ColumnFlags => _columnFlags;
 
         private static string[] dateFormats = { "d/M/yyyy", "dd/MM/yyyy", "d.M.yyyy", "dd.MM.yyyy", "yyyy-MM-dd" };
 
@@ -57,6 +68,28 @@ namespace WamData
 
             if (FirePower < 1 || FirePower > 200)
                 throw new OptionsException("Invalid firepower");
+
+            _columnFlags = SetColumns(Columns);
+        }
+
+        private ColumnFlags SetColumns(IEnumerable<string> columns)
+        {
+            ColumnFlags flags = 0;
+            foreach (var column in columns)
+            {
+                switch (column.ToLowerInvariant())
+                {
+                    case "wamdate": flags |= ColumnFlags.WamDate; break;
+                    case "date": flags |= ColumnFlags.Date; break;
+                    case "rank": flags |= ColumnFlags.Rank; break;
+                    case "score": flags |= ColumnFlags.Score; break;
+                    default:
+                        throw new OptionsException($"Unknown column name {column}");
+                }
+            }
+            if (flags == 0)
+                flags = ColumnFlags.WamDate | ColumnFlags.Date | ColumnFlags.Rank | ColumnFlags.Score;
+            return flags;
         }
 
         private static int GetVeticalType(string code)
@@ -86,5 +119,6 @@ namespace WamData
                 return s.ToString();
             }
         }
+
     }
 }
