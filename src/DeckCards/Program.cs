@@ -41,8 +41,16 @@ namespace DeckCards
             {
                 options.SaveCredentials();
                 Console.WriteLine("Username and password saved.");
-                return;
             }
+            else
+            {
+                GenerateMarkup(options);
+            }
+        }
+
+
+        private static void GenerateMarkup(Options options)
+        {
             DateTime runTime = DateTime.Now.ToUniversalTime();
 
             using (wiki = new CardsInDecksClient(options.Site, UserAgent(), ReadCardNames(), options.Batch))
@@ -106,8 +114,26 @@ namespace DeckCards
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
                 + markup
                 + target.Content.Substring(endPos);
-            target.Save("Updating list via DeckCards utility.");
+            target.Save($"Updating via DeckCards {VersionString()}");
         }
+
+        //private static Dictionary<string, string> ReadCardNames()
+        //{
+        //    string line;
+        //    var cardNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        //    string filename = FullPath("cardnames.txt");
+        //    Console.Error.WriteLine($"Reading card names from {filename}");
+        //    using (var sr = new StreamReader(filename))
+        //    {
+        //        while ((line = sr.ReadLine()) != null)
+        //        {
+        //            string trimmedLine = line.Trim();
+        //            if (trimmedLine.Length != 0 && trimmedLine[0] != '#')
+        //                cardNames.Add(trimmedLine, trimmedLine);
+        //        }
+        //    }
+        //    return cardNames;
+        //}
 
         private static Dictionary<string, string> ReadCardNames()
         {
@@ -117,11 +143,8 @@ namespace DeckCards
             Console.Error.WriteLine($"Reading card names from {filename}");
             using (var sr = new StreamReader(filename))
             {
-                while ((line = sr.ReadLine()) != null)
-                {
-                    string trimmedLine = line.Trim();
-                    cardNames.Add(trimmedLine, trimmedLine);
-                }
+                while ((line = sr.ReadConfigLine()) != null)
+                    cardNames.Add(line, line);
             }
             return cardNames;
         }
@@ -136,8 +159,8 @@ namespace DeckCards
                 Console.Error.WriteLine($"Reading removed cards from {filename}");
                 using (var sr = new StreamReader(filename))
                 {
-                    while ((line = sr.ReadLine()) != null)
-                        removedCards.Add(line.Trim());
+                    while ((line = sr.ReadConfigLine()) != null)
+                        removedCards.Add(line);
                 }
             }
             return removedCards;
@@ -154,11 +177,8 @@ namespace DeckCards
                 Console.Error.WriteLine($"Reading ignored decks from {filename}");
                 using (var sr = new StreamReader(filename))
                 {
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        if (!string.IsNullOrWhiteSpace(line))
-                            ignoredDecks.Add(line.TrimEnd());
-                    }
+                    while ((line = sr.ReadConfigLine()) != null)
+                        ignoredDecks.Add(line);
                 }
             }
             return ignoredDecks;
@@ -171,8 +191,13 @@ namespace DeckCards
 
         private static string UserAgent()
         {
+            return $"DeckCards/{VersionString()} (Contact admin at magicarena.fandom.com)";
+        }
+
+        private static string VersionString()
+        {
             var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"DeckCards/{version.Major}.{version.Minor}.{version.Build} (Contact admin at magicarena.fandom.com)";
+            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 }

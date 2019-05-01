@@ -1,3 +1,17 @@
-﻿Category:Test deck
+﻿# Used by WikiTools DeckCards to specify decks that should be ignored.
+#
+# Each line is either a deck name (without the "Decks/" prefix)
+# or a category that should be ignored. Categories must start with "Category:"
+# folowed by yje catategory name. There should be no space between "Category:"
+# and the category name.
+#
+# Format of this file:
+#	- One deck name or category per line
+#	- Leading spaces are significant
+#	- Trailing spaces are ignored
+#	- Lines starting with # (with no leading spaces) are ignored
+#	- blank lines are ignored
+
+Category:Test deck
 Category:Candidates for deletion
 B/W

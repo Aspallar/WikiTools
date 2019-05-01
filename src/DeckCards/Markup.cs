@@ -16,7 +16,7 @@ namespace DeckCards
         public static string GetMarkup(Dictionary<string, List<string>> cards)
         {
             List<string> deckNames = new List<string>();
-            StringBuilder markup = new StringBuilder(350 * 1024);
+            StringBuilder markup = new StringBuilder(300 * cards.Count);
             char currentFirstLetter = '*';
             List<string> sortedCards = cards.Keys.OrderBy(x => x).ToList();
             markup.AppendLine("<div id=\"mdw-cardsindecks-container\" style=\"margin-left:60px\">");
@@ -27,7 +27,7 @@ namespace DeckCards
                 char firstLetter = char.ToLowerInvariant(card[0]);
                 if (firstLetter != currentFirstLetter)
                 {
-                    AppendAnchorDiv(markup, firstLetter);
+                    AppendAnchorDivAndTitle(markup, firstLetter);
                     currentFirstLetter = firstLetter;
                 }
                 AppendCardRow(markup, card, decks);
@@ -45,13 +45,13 @@ namespace DeckCards
                 AppendDecksRow(markup, deckIds);
             }
             markup.AppendLine("</div>");
-            markup.Insert(0, DeckDataPre(deckNames));
+            markup.Insert(0, DeckDataPreTag(deckNames));
             return markup.ToString();
         }
 
-        private static StringBuilder DeckDataPre(List<string> deckNames)
+        private static StringBuilder DeckDataPreTag(List<string> deckNames)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(16 * deckNames.Count);
             sb.Append("<pre id=\"mdw-deck-data\" style=\"display:none;\">[");
             foreach (string deckName in deckNames)
             {
@@ -88,20 +88,13 @@ namespace DeckCards
             markup.AppendLine(")</div>");
         }
 
-        //private static void AppendDeckRow(StringBuilder markup, string deck)
-        //{
-        //    markup.Append("*[[");
-        //    markup.Append(deck);
-        //    markup.Append('|');
-        //    markup.Append(deck.Substring(6));
-        //    markup.AppendLine("]]");
-        //}
-
-        private static void AppendAnchorDiv(StringBuilder markup, char firstLetter)
+        private static void AppendAnchorDivAndTitle(StringBuilder markup, char firstLetter)
         {
             markup.Append("<div id=\"mdw");
             markup.Append(firstLetter);
-            markup.AppendLine("\"></div>");
+            markup.Append("\"></div>\n== ");
+            markup.Append(char.ToUpperInvariant(firstLetter));
+            markup.AppendLine(" ==");
         }
 
     }

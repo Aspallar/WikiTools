@@ -1,3 +1,15 @@
+# Used by WikiTools DeckCards to specify cards that have been removed from the game.
+#
+# If a deck contains one or more these cards then that deck will not be
+# included in the output.
+#
+# Format of this file:
+#	- One card name per line
+#	- Leading spaces are significant
+#	- Trailing spaces are ignored
+#	- Lines starting with # (with no leading spaces) are ignored
+#	- blank lines are ignored
+
 Abandoned Sarcophagus
 Abrade
 Accomplished Automaton

@@ -46,7 +46,8 @@ namespace WamData
                 siteSearchTerm = "https://" + options.Name;
                 range = new DaysRange(options.StartDate);
                 endDate = options.EndDate;
-                RunFetchWamDataTasks(options.FirePower).GetAwaiter().GetResult();
+                int totalTasks = Math.Min(options.FirePower, options.StartDate.InclusiveDaysUntil(endDate));
+                RunFetchWamDataTasks(totalTasks).GetAwaiter().GetResult();
                 if (cancelCount == 0)
                 {
                     WriteResults(options.Verbose, options.ColumnFlags);
@@ -68,7 +69,7 @@ namespace WamData
         private static void ShowInitialMessage(string name, DateTimeOffset startDate, DateTimeOffset endDate)
         {
             const string format = "MMMM d, yyyy";
-            int days = (int)(endDate - startDate).TotalDays + 1;
+            int days = startDate.InclusiveDaysUntil(endDate);
             Console.Error.WriteLine($"Commencing to probe WAM for {name} data.");
             Console.Error.WriteLine($"From {startDate.ToString(format)} to {endDate.ToString(format)} ({days} days)");
         }
@@ -128,7 +129,7 @@ namespace WamData
                 {
                     DateTimeOffset date = range.Next();
                     if (date > endDate)
-                        break; // while true
+                        break; // while
                     try
                     {
                         var doc = await GetDocument(parser, client, date).ConfigureAwait(false);

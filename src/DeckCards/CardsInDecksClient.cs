@@ -25,6 +25,7 @@ namespace DeckCards
 
         public Dictionary<string, List<string>> GetCardsInDecks(List<string> ignoredDecks, HashSet<string> removedCards)
         {
+            Console.Error.WriteLine("Fetching ignored categories.");
             HashSet<string> expandedIgnoredDecks = ExpandIgnoredDecks(ignoredDecks);
             var cards = new Dictionary<string, List<string>>();
             foreach (var deck in GetDecks(expandedIgnoredDecks, removedCards))

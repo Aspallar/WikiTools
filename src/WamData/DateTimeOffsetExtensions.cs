@@ -14,5 +14,10 @@ namespace WamData
         {
             return dto.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture);
         }
+
+        public static int InclusiveDaysUntil(this DateTimeOffset start, DateTimeOffset end)
+        {
+            return (int)(end - start).TotalDays + 1;
+        }
     }
 }

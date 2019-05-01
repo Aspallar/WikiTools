@@ -1,3 +1,19 @@
+# Used by WikiTools DeckCards to correct the case of deck definiions.
+#
+# Cards that are not in here will not be included in the "Cards In Decks" page.
+# The Gatherer CardNames (not the CardNames in WikiTools) can be used to generate
+# the contents for this file.
+#
+# N.B. The Basic Lands (Forest, Plains, Mountain, Swamp, Island) should NOT be in 
+# this fiile, as there is no point in listing decks that contain them.
+#
+# Format of this file:
+#	- One card name per line
+#	- Leading spaces are significant
+#	- Trailing spaces are ignored
+#	- Lines starting with # (with no leading spaces) are ignored
+#	- blank lines are ignored
+
 Abnormal Endurance
 Absorb
 Academy Drake
@@ -570,7 +586,6 @@ Forerunner of the Coalition
 Forerunner of the Empire
 Forerunner of the Heralds
 Forerunner of the Legion
-Forest
 Form of the Dinosaur
 Forsaken Sanctuary
 Foul Orchard
@@ -798,7 +813,6 @@ Iron Bully
 Ironclad Krovod
 Ironshell Beetle
 Isareth the Awakener
-Island
 Isolate
 Isolated Chapel
 Itlimoc, Cradle of the Sun
@@ -1005,7 +1019,6 @@ Moment of Craving
 Moment of Triumph
 Moodmark Painter
 Mortify
-Mountain
 Mowu, Loyal Companion
 Mox Amber
 Muldrotha, the Gravetide
@@ -1122,7 +1135,6 @@ Pitiless Pontiff
 Plague Mare
 Plague Wight
 Plaguecrafter
-Plains
 Planewide Celebration
 Plaza of Harmony
 Pledge of Unity
@@ -1523,7 +1535,6 @@ Surge Mare
 Suspicious Bookcase
 Swab Goblin
 Swaggering Corsair
-Swamp
 Swarm Guildmage
 Swashbuckling
 Swathcutter Giant
