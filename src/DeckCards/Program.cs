@@ -78,7 +78,7 @@ namespace DeckCards
                     }
                     catch (UploadException ex)
                     {
-                        Console.WriteLine(ex.Message);
+                        Console.Error.WriteLine(ex.Message);
                     }
                 }
             }
@@ -116,24 +116,6 @@ namespace DeckCards
                 + target.Content.Substring(endPos);
             target.Save($"Updating via DeckCards {VersionString()}");
         }
-
-        //private static Dictionary<string, string> ReadCardNames()
-        //{
-        //    string line;
-        //    var cardNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        //    string filename = FullPath("cardnames.txt");
-        //    Console.Error.WriteLine($"Reading card names from {filename}");
-        //    using (var sr = new StreamReader(filename))
-        //    {
-        //        while ((line = sr.ReadLine()) != null)
-        //        {
-        //            string trimmedLine = line.Trim();
-        //            if (trimmedLine.Length != 0 && trimmedLine[0] != '#')
-        //                cardNames.Add(trimmedLine, trimmedLine);
-        //        }
-        //    }
-        //    return cardNames;
-        //}
 
         private static Dictionary<string, string> ReadCardNames()
         {
@@ -186,7 +168,7 @@ namespace DeckCards
 
         private static string FullPath(string fileName)
         {
-            return Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\" + fileName;
+            return AppContext.BaseDirectory + fileName;
         }
 
         private static string UserAgent()

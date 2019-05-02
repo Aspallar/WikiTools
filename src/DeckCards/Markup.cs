@@ -22,7 +22,7 @@ namespace DeckCards
             markup.AppendLine("<div id=\"mdw-cardsindecks-container\" style=\"margin-left:60px\">");
             foreach (var card in sortedCards)
             {
-                var deckIds = new List<int>();
+                var deckIndexes = new List<int>();
                 var decks = cards[card].OrderBy(x => x).ToList();
                 char firstLetter = char.ToLowerInvariant(card[0]);
                 if (firstLetter != currentFirstLetter)
@@ -40,9 +40,9 @@ namespace DeckCards
                         deckNames.Add(noPrefix);
                         index = deckNames.Count - 1;
                     }
-                    deckIds.Add(index);
+                    deckIndexes.Add(index);
                 }
-                AppendDecksRow(markup, deckIds);
+                AppendDecksRow(markup, deckIndexes);
             }
             markup.AppendLine("</div>");
             markup.Insert(0, DeckDataPreTag(deckNames));
@@ -56,10 +56,9 @@ namespace DeckCards
             foreach (string deckName in deckNames)
             {
                 sb.Append('"');
-                if (deckName.IndexOf('"') == -1)
-                    sb.Append(deckName);
-                else
-                    sb.Append(deckName.Replace("\"","\\\""));
+                sb.Append(deckName);
+                if (deckName.IndexOf('"') != -1)
+                    sb.Replace("\"", "\\\"", sb.Length - deckName.Length, deckName.Length);
                 sb.Append("\",");
             }
             sb[sb.Length - 1] = ']';
@@ -67,34 +66,31 @@ namespace DeckCards
             return sb;
         }
 
-        private static void AppendDecksRow(StringBuilder markup, List<int> deckIds)
+        private static void AppendDecksRow(StringBuilder markup, List<int> deckIndexes)
         {
             markup.Append("<div style=\"display:none\" data-decks=\"[");
-            foreach (int id in deckIds)
-            {
-                markup.Append(id);
-                markup.Append(',');
-            }
+            foreach (int id in deckIndexes)
+                markup.Append(id).Append(',');
             markup[markup.Length - 1] = ']';
             markup.AppendLine("\"></div>");
         }
 
         private static void AppendCardRow(StringBuilder markup, string card, List<string> decks)
         {
-            markup.Append("<div><span class=\"mdw-cardsindecks-arrow\"></span> '''{{Card|");
-            markup.Append(card);
-            markup.Append("}}''' (");
-            markup.Append(decks.Count);
-            markup.AppendLine(")</div>");
+            markup.Append("<div><span class=\"mdw-cardsindecks-arrow\"></span> '''{{Card|")
+                .Append(card)
+                .Append("}}''' (")
+                .Append(decks.Count)
+                .AppendLine(")</div>");
         }
 
         private static void AppendAnchorDivAndTitle(StringBuilder markup, char firstLetter)
         {
-            markup.Append("<div id=\"mdw");
-            markup.Append(firstLetter);
-            markup.Append("\"></div>\n== ");
-            markup.Append(char.ToUpperInvariant(firstLetter));
-            markup.AppendLine(" ==");
+            markup.Append("<div id=\"mdw")
+                .Append(firstLetter)
+                .Append("\"></div>\n== ")
+                .Append(char.ToUpperInvariant(firstLetter))
+                .AppendLine(" ==");
         }
 
     }
