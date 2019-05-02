@@ -19,34 +19,43 @@ namespace DeckCards
             StringBuilder markup = new StringBuilder(300 * cards.Count);
             char currentFirstLetter = '*';
             List<string> sortedCards = cards.Keys.OrderBy(x => x).ToList();
-            markup.AppendLine("<div id=\"mdw-cardsindecks-container\" style=\"margin-left:60px\">");
+            markup.AppendLine("<div id=\"mdw-cardsindecks-container\">");
             foreach (var card in sortedCards)
             {
-                var deckIndexes = new List<int>();
                 var decks = cards[card].OrderBy(x => x).ToList();
                 char firstLetter = char.ToLowerInvariant(card[0]);
                 if (firstLetter != currentFirstLetter)
                 {
+                    if (currentFirstLetter != '*')
+                        markup.Append("</div>");
                     AppendAnchorDivAndTitle(markup, firstLetter);
                     currentFirstLetter = firstLetter;
                 }
-                AppendCardRow(markup, card, decks);
-                foreach (var deck in decks)
-                {
-                    string noPrefix = deck.Substring(6);
-                    int index = deckNames.FindIndex(x => x == noPrefix);
-                    if (index == -1)
-                    {
-                        deckNames.Add(noPrefix);
-                        index = deckNames.Count - 1;
-                    }
-                    deckIndexes.Add(index);
-                }
+                AppendCardRow(markup, card, decks.Count);
+                List<int> deckIndexes = DeckIndexes(deckNames, decks);
                 AppendDecksRow(markup, deckIndexes);
             }
             markup.AppendLine("</div>");
             markup.Insert(0, DeckDataPreTag(deckNames));
             return markup.ToString();
+        }
+
+        private static List<int> DeckIndexes(List<string> deckNames, List<string> decks)
+        {
+            var deckIndexes = new List<int>();
+            foreach (var deck in decks)
+            {
+                string noPrefix = deck.Substring(6);
+                int index = deckNames.FindIndex(x => x == noPrefix);
+                if (index == -1)
+                {
+                    deckNames.Add(noPrefix);
+                    index = deckNames.Count - 1;
+                }
+                deckIndexes.Add(index);
+            }
+
+            return deckIndexes;
         }
 
         private static StringBuilder DeckDataPreTag(List<string> deckNames)
@@ -75,23 +84,23 @@ namespace DeckCards
             markup.AppendLine("\"></div>");
         }
 
-        private static void AppendCardRow(StringBuilder markup, string card, List<string> decks)
+        private static void AppendCardRow(StringBuilder markup, string card, int numDecks)
         {
             markup.Append("<div><span class=\"mdw-cardsindecks-arrow\"></span> '''{{Card|")
                 .Append(card)
                 .Append("}}''' (")
-                .Append(decks.Count)
+                .Append(numDecks)
                 .AppendLine(")</div>");
         }
 
         private static void AppendAnchorDivAndTitle(StringBuilder markup, char firstLetter)
         {
+
             markup.Append("<div id=\"mdw")
                 .Append(firstLetter)
                 .Append("\"></div>\n== ")
                 .Append(char.ToUpperInvariant(firstLetter))
-                .AppendLine(" ==");
+                .AppendLine(" ==\n<div style=\"margin-left: 60px\">");
         }
-
     }
 }
