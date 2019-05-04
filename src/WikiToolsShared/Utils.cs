@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,6 +61,23 @@ namespace WikiToolsShared
                 }
             } while (key.Key != ConsoleKey.Enter);
             return password.ToString();
+        }
+
+        public static string UserAgent()
+        {
+            AssemblyName name = Assembly.GetEntryAssembly().GetName();
+            return $"{name.Name}/{VersionString(name)} (contact https://magicarena.fandom.com/wiki/Special:ListUsers/sysop)";
+        }
+
+        private static string VersionString()
+        {
+            return VersionString(Assembly.GetEntryAssembly().GetName());
+        }
+
+        private static string VersionString(AssemblyName assemblyName)
+        {
+            var version = assemblyName.Version;
+            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 }

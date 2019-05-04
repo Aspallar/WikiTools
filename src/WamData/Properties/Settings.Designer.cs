@@ -25,8 +25,8 @@ namespace WamData.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://community.fandom.com/wiki/WAM?verticalId={1}&langCode=&searchPhrase={0}&d" +
-            "ate=")]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://community.fandom.com/wiki/WAM?verticalId={1}&langCode=&searchPhrase={0}&c" +
+            "b={2}&date=")]
         public string UrlFormat {
             get {
                 return ((string)(this["UrlFormat"]));

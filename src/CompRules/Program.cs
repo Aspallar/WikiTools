@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using WikiaClientLibrary;
+using WikiToolsShared;
 
 namespace CompRules
 {
@@ -14,13 +16,15 @@ namespace CompRules
             {
                 ServicePointManager.Expect100Continue = true;
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                Console.OutputEncoding = Encoding.UTF8;
                 using (var client = new ExtendedWebClient())
                 {
-                    client.UserAgent = UserAgent();
+                    client.UserAgent = Utils.UserAgent();
                     var rulesUrl = FetchRulesUrl(client);
                     if (rulesUrl != null)
                     {
                         string rules = client.DownloadString(rulesUrl);
+                        rules = FixNewlines(rules);
                         Console.WriteLine(rules);
                     }
                     else
@@ -35,6 +39,13 @@ namespace CompRules
             }
         }
 
+        private static string FixNewlines(string rules)
+        {
+            // sometimes the posted file uses \r for newline, sometimes \n, sometimes \r\n
+            // \n and \r\n are fine for us but \r needs to be replaced
+            return Regex.Replace(rules, @"\r(?!\n)", "\n", RegexOptions.Singleline);
+        }
+
         private static string FetchRulesUrl(ExtendedWebClient client)
         {
             string contents = client.DownloadString("https://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules");
@@ -43,17 +54,6 @@ namespace CompRules
                 return match.Groups[1].Value;
             else
                 return null;
-        }
-
-        private static string UserAgent()
-        {
-            return $"CompRules/{VersionString()} (Contact admin at magicarena.fandom.com)";
-        }
-
-        private static string VersionString()
-        {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 }

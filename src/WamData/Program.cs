@@ -10,6 +10,7 @@ using AngleSharp.Dom;
 using System.Threading;
 using WikiToolsShared;
 using System.Reflection;
+using System.Net;
 
 namespace WamData
 {
@@ -32,6 +33,9 @@ namespace WamData
 
         private static void Run(Options options)
         {
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            SetUserAgent();
             try
             {
                 if (options.MoreHelp)
@@ -40,23 +44,56 @@ namespace WamData
                     return;
                 }
                 options.Validate();
-                ShowInitialMessage(options.Name, options.StartDate, options.EndDate);
-                SetUserAgent();
-                urlBase = UrlBase(options.Name, options.VerticalType);
-                siteSearchTerm = "https://" + options.Name;
-                range = new DaysRange(options.StartDate);
-                endDate = options.EndDate;
-                int totalTasks = Math.Min(options.FirePower, options.StartDate.InclusiveDaysUntil(endDate));
-                RunFetchWamDataTasks(totalTasks).GetAwaiter().GetResult();
-                if (cancelCount == 0)
-                {
-                    WriteResults(options.Verbose, options.ColumnFlags);
-                    WriteErrors();
-                }
+                if (options.Latest)
+                    FetchLatestDate(options);
+                else
+                    FetchWamData(options);
             }
             catch (OptionsException ex)
             {
                 Console.Error.WriteLine(ex.Message);
+            }
+        }
+
+        private static void FetchLatestDate(Options options)
+        {
+            FetchLatestDateAsync(options).GetAwaiter().GetResult();
+        }
+
+        private static async Task FetchLatestDateAsync(Options options)
+        {
+            string url = UrlBase(options.Name, options.VerticalType).Replace("&date=", "");
+            using (var client = CreateClient())
+            {
+                string contents = await client.GetStringAsync(url);
+                var parser = new HtmlParser();
+                var doc = parser.Parse(contents);
+                var input = doc.QuerySelector("#WamFilterHumanDate");
+                if (input != null)
+                {
+                    var latestDate = input.GetAttribute("value");
+                    Console.WriteLine(latestDate);
+                }
+                else
+                {
+                    Console.WriteLine("Unable to find latest date on returned page.");
+                }
+            }
+        }
+
+        private static void FetchWamData(Options options)
+        {
+            ShowInitialMessage(options.Name, options.StartDate, options.EndDate);
+            urlBase = UrlBase(options.Name, options.VerticalType);
+            siteSearchTerm = "https://" + options.Name;
+            range = new DaysRange(options.StartDate);
+            endDate = options.EndDate;
+            int totalTasks = Math.Min(options.FirePower, options.StartDate.InclusiveDaysUntil(endDate));
+            RunFetchWamDataTasks(totalTasks).GetAwaiter().GetResult();
+            if (cancelCount == 0)
+            {
+                WriteResults(options.Verbose, options.ColumnFlags);
+                WriteErrors();
             }
         }
 
@@ -235,13 +272,15 @@ namespace WamData
         {
             HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Add("User-Agent", userAgent);
+            client.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
+            client.DefaultRequestHeaders.Add("pragma", "no-cache");
             return client;
         }
 
         private static string UrlBase(string name, int verticalId)
         {
             string url = Properties.Settings.Default.UrlFormat;
-            return string.Format(url, name, verticalId);
+            return string.Format(url, name, verticalId, DateTime.Now.Ticks);
         }
     }
 }

@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="UrlFormat" Type="System.String" Scope="Application">
-      <Value Profile="(Default)">https://community.fandom.com/wiki/WAM?verticalId={1}&amp;langCode=&amp;searchPhrase={0}&amp;date=</Value>
+      <Value Profile="(Default)">https://community.fandom.com/wiki/WAM?verticalId={1}&amp;langCode=&amp;searchPhrase={0}&amp;cb={2}&amp;date=</Value>
     </Setting>
   </Settings>
 </SettingsFile>

@@ -9,6 +9,9 @@ namespace WamData
 {
     internal sealed class Options
     {
+        [Option(HelpText = "Show the latest date data is available for.")]
+        public bool Latest { get; internal set; }
+
         [Option(HelpText = "Start date (defaults to start of current year)")]
         public string Start { get; set; }
 
@@ -55,7 +58,7 @@ namespace WamData
                 throw new OptionsException($"Invalid Start date format.\n{DateFormatsHelp}");
 
             if (string.IsNullOrEmpty(End))
-                _endDate = new DateTimeOffset(DateTime.Today.Date, new TimeSpan(0));
+                _endDate = new DateTimeOffset(DateTime.Today.Date.ToUniversalTime(), new TimeSpan(0));
             else if (!DateTimeOffset.TryParseExact(End, dateFormats, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out _endDate))
                 throw new OptionsException($"Invalid end date format.\n{DateFormatsHelp}");
 
