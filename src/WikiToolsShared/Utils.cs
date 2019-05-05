@@ -69,12 +69,12 @@ namespace WikiToolsShared
             return $"{name.Name}/{VersionString(name)} (contact https://magicarena.fandom.com/wiki/Special:ListUsers/sysop)";
         }
 
-        private static string VersionString()
+        public static string VersionString()
         {
             return VersionString(Assembly.GetEntryAssembly().GetName());
         }
 
-        private static string VersionString(AssemblyName assemblyName)
+        public static string VersionString(AssemblyName assemblyName)
         {
             var version = assemblyName.Version;
             return $"{version.Major}.{version.Minor}.{version.Build}";

@@ -10,8 +10,8 @@ namespace DeckCards
 {
     internal class CardsInDecksClient : WikiaClient
     {
-        private int _batchSize;
-        private Dictionary<string, string> _cardNames;
+        private readonly int _batchSize;
+        private readonly Dictionary<string, string> _cardNames;
 
         public CardsInDecksClient(
             string site,
@@ -33,19 +33,12 @@ namespace DeckCards
                 Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
                 {
-                    string correctCase;
-                    if (_cardNames.TryGetValue(card, out correctCase))
+                    if (_cardNames.TryGetValue(card, out string correctCase))
                     {
                         if (cards.ContainsKey(correctCase))
-                        {
                             cards[correctCase].Add(deck.Title);
-                        }
                         else
-                        {
-                            var decks = new List<string>();
-                            decks.Add(deck.Title);
-                            cards.Add(correctCase, decks);
-                        }
+                            cards.Add(correctCase, new List<string> { deck.Title });
                     }
                 }
             }
@@ -77,7 +70,7 @@ namespace DeckCards
             });
             GetXmlResponse(url, members);
             TerminateOnErrorOrWarning(members, "Error while fetching category members for " + category);
-            TerminateIfTooManyMembers(members, category);
+            TerminateIfTooManyMembers(members);
             foreach (XmlNode candidate in members.SelectNodes("/api/query/categorymembers/cm"))
             {
                 string title = candidate.Attributes["title"].Value;
@@ -139,7 +132,7 @@ namespace DeckCards
             return string.Join("|", pageids);
         }
 
-        private static Regex cardRegex = new Regex(@"\d+\s+([^\(/]+)");
+        private static readonly Regex cardRegex = new Regex(@"\d+\s+([^\(/]+)");
         private static List<string> GetCards(string pageText)
         {
             char[] newline = { '\n' };
@@ -189,7 +182,8 @@ namespace DeckCards
 
         private void GetXmlResponse(string url, XmlDocument response)
         {
-            string responseContent = _client.DownloadString(url);
+            // TODO: consider download and loadxml
+            //string responseContent = _client.DownloadString(url);
             response.Load(url);
         }
 
@@ -212,7 +206,7 @@ namespace DeckCards
             }
         }
 
-        private void TerminateIfTooManyMembers(XmlDocument members, string category)
+        private void TerminateIfTooManyMembers(XmlDocument members)
         {
             if (members.SelectSingleNode("/api/query-continue") != null)
             {

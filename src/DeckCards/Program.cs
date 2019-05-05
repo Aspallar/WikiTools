@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Reflection;
 using WikiaClientLibrary;
+using WikiToolsShared;
 
 namespace DeckCards
 {
@@ -16,8 +16,6 @@ namespace DeckCards
         {
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => Run(options));
             }
@@ -53,7 +51,7 @@ namespace DeckCards
         {
             DateTime runTime = DateTime.Now.ToUniversalTime();
 
-            using (wiki = new CardsInDecksClient(options.Site, UserAgent(), ReadCardNames(), options.Batch))
+            using (wiki = new CardsInDecksClient(options.Site, Utils.UserAgent(), ReadCardNames(), options.Batch))
             {
                 if (!wiki.Login(options.User, options.Password))
                 {
@@ -114,7 +112,7 @@ namespace DeckCards
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
                 + markup
                 + target.Content.Substring(endPos);
-            target.Save($"Updating via DeckCards {VersionString()}");
+            target.Save($"Updating via DeckCards {Utils.VersionString()}");
         }
 
         private static Dictionary<string, string> ReadCardNames()
@@ -169,17 +167,6 @@ namespace DeckCards
         private static string FullPath(string fileName)
         {
             return AppContext.BaseDirectory + fileName;
-        }
-
-        private static string UserAgent()
-        {
-            return $"DeckCards/{VersionString()} (Contact admin at magicarena.fandom.com)";
-        }
-
-        private static string VersionString()
-        {
-            var version = Assembly.GetExecutingAssembly().GetName().Version;
-            return $"{version.Major}.{version.Minor}.{version.Build}";
         }
     }
 }
