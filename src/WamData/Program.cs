@@ -28,8 +28,8 @@ namespace WamData
         static string siteSearchTerm;
         static DaysRange range;
         static DateTimeOffset endDate;
-        static List<WamItem> results = new List<WamItem>();
-        static List<WamError> errors = new List<WamError>();
+        static readonly List<WamItem> results = new List<WamItem>();
+        static readonly List<WamError> errors = new List<WamError>();
 
         private static void Run(Options options)
         {

@@ -18,7 +18,7 @@ namespace DeckRatings
         [Option(HelpText = "Show counts")]
         public bool Counts { get; set; }
 
-        [Option(Default = "http://magicarena.fandom.com", HelpText = "The site to query")]
+        [Option(Default = "https://magicarena.fandom.com", HelpText = "The site to query")]
         public string Site { get; set; }
 
         [Option(Default = -1, HelpText = "Number of days to look back, 0 for today only.")]

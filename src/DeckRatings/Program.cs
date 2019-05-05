@@ -1,6 +1,7 @@
 ﻿using CsvHelper;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Xml;
 using CommandLine;
 using WikiToolsShared;
@@ -11,6 +12,8 @@ namespace DeckRatings
     {
         static void Main(string[] args)
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.Expect100Continue = true;
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(options => Run(options));
         }

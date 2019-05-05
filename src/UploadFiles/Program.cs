@@ -2,6 +2,7 @@
 using log4net;
 using System;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WikiToolsShared;
@@ -10,7 +11,7 @@ namespace UploadFiles
 {
     class Program
     {
-        private static ILog log = LogManager.GetLogger(typeof(Program));
+        private static readonly ILog log = LogManager.GetLogger(typeof(Program));
         private const char filenameSeparator = '|';
         private static CancellationTokenSource cancelSource;
 
@@ -32,6 +33,11 @@ namespace UploadFiles
         private static void Run(Options options)
         {
             options.Validate();
+            if (options.Site.ToLowerInvariant().StartsWith("https"))
+            {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.Expect100Continue = true;
+            }
             OpeningMessage();
             Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor, options.Debug);
             LogOptions(options);

@@ -44,8 +44,9 @@ namespace WikiaClientLibrary
                 response = AttemptLogin(userData);
                 return response.Result == ResponseResults.Success;
             }
-            catch (WebException)
+            catch (WebException ex)
             {
+                Console.Error.WriteLine(ex.ToString());
                 return false;
             }
         }

@@ -12,10 +12,12 @@ namespace DeckCards
     {
         private static CardsInDecksClient wiki;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.Expect100Continue = true;
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => Run(options));
             }

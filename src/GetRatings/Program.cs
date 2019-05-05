@@ -13,6 +13,8 @@ namespace GetRatings
         {
             try
             {
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.Expect100Continue = true;
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => Run(options));
             }
