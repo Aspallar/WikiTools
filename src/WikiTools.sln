@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28917.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeckRatings", "DeckRatings\DeckRatings.csproj", "{65B6AEA8-6114-4C1F-8A22-F70076BA2E16}"
 EndProject
@@ -39,6 +39,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WamData", "WamData\WamData.csproj", "{2DD7980C-7DA9-40B9-81A2-D8904543D5C7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompRules", "CompRules\CompRules.csproj", "{4E0A2D77-2C0E-49E2-A434-2A88CF6E8794}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateDecks", "DuplicateDecks\DuplicateDecks.csproj", "{450BE3FD-CEEF-4CF1-8C96-49FF660948E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,8 +104,15 @@ Global
 		{4E0A2D77-2C0E-49E2-A434-2A88CF6E8794}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E0A2D77-2C0E-49E2-A434-2A88CF6E8794}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E0A2D77-2C0E-49E2-A434-2A88CF6E8794}.Release|Any CPU.Build.0 = Release|Any CPU
+		{450BE3FD-CEEF-4CF1-8C96-49FF660948E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{450BE3FD-CEEF-4CF1-8C96-49FF660948E8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{450BE3FD-CEEF-4CF1-8C96-49FF660948E8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{450BE3FD-CEEF-4CF1-8C96-49FF660948E8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6089CD1F-3F91-4076-B977-371215DB401D}
 	EndGlobalSection
 EndGlobal

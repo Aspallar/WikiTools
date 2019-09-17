@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace UploadFiles
+namespace WikiToolsShared
 {
     [Serializable]
-    internal class OptionsException : Exception
+    public class OptionsException : Exception
     {
         public OptionsException()
         {

@@ -1,9 +1,9 @@
-﻿using System;
-using CommandLine;
+﻿using CommandLine;
+using WikiToolsShared;
 
 namespace DeckCards
 {
-    internal class Options
+    internal class Options : SiteOptions
     {
         private const int maxBatch = 50;
 
@@ -15,9 +15,6 @@ namespace DeckCards
 
         [Option(HelpText = "Password")]
         public string Password { get; set; }
-
-        [Option(Default = "https://magicarena.fandom.com", HelpText = "Site to update")]
-        public string Site { get; set; }
 
         [Option(HelpText = "Save username and password")]
         public bool Save { get; set; }
@@ -41,8 +38,9 @@ namespace DeckCards
             }
         }
 
-        public void Validate()
+        public override void Validate()
         {
+            base.Validate();
             if (Batch <= 0 || Batch > maxBatch)
                 throw new OptionsException($"Value for --batch should be 1 to {maxBatch} inclusive.");
             SetCredentials();

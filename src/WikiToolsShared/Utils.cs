@@ -79,5 +79,8 @@ namespace WikiToolsShared
             var version = assemblyName.Version;
             return $"{version.Major}.{version.Minor}.{version.Build}";
         }
+
+        public static int CombineHashCodes(int hashCode1, int hashCode2)
+            => (((hashCode1 << 5) + hashCode1) ^ hashCode2);
     }
 }

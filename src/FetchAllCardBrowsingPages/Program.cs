@@ -1,11 +1,9 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using WikiaClientLibrary;
 
@@ -22,6 +20,8 @@ namespace FetchAllCardBrowsingPages
             try
             {
 #endif
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.Expect100Continue = true;
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(opts => { options = opts;  Run(); });
 #if !DEBUG

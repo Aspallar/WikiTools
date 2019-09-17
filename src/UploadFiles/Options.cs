@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using System.IO;
 using System;
+using WikiToolsShared;
 
 namespace UploadFiles
 {

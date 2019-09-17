@@ -50,7 +50,7 @@ namespace RatingPurge
                 else
                     LoginAndPurge(options);
             }
-            catch (OptionValidationException ex)
+            catch (OptionsException ex)
             {
                 Console.Error.WriteLine(ex.Message);
             }

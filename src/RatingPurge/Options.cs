@@ -2,6 +2,7 @@
 using CommandLine.Text;
 using System.Collections.Generic;
 using System;
+using WikiToolsShared;
 
 namespace RatingPurge
 {
@@ -40,9 +41,9 @@ namespace RatingPurge
         public void Validate()
         {
             if (!Show && string.IsNullOrEmpty(PurgeUserName))
-                throw new OptionValidationException($"No username to purge specified");
+                throw new OptionsException($"No username to purge specified");
             if (!Uri.IsWellFormedUriString(Site, UriKind.Absolute))
-                throw new OptionValidationException($"Invalid value for --site, {Site}");
+                throw new OptionsException($"Invalid value for --site, {Site}");
         }
 
         [Usage]

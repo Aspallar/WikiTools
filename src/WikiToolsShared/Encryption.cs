@@ -3,11 +3,11 @@ using System.Text;
 using System.Security.Cryptography;
 
 
-namespace DeckCards
+namespace WikiToolsShared
 {
-    internal static class Encryption
+    public static class Encryption
     {
-        private static byte[] entropy = { 12, 222, 41, 108, 99, 63, 11, 12, 244, 201, 63 };
+        private static readonly byte[] entropy = { 12, 222, 41, 108, 99, 63, 11, 12, 244, 201, 63 };
 
         public static string Decrypt(string text)
         {

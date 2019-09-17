@@ -92,7 +92,6 @@ Banewhip Punisher
 Baral, Chief of Compliance
 Baral's Expertise
 Barricade Breaker
-Bastion Enforcer
 Bastion Inventor
 Bastion Mastodon
 Battle at the Bridge
@@ -151,7 +150,6 @@ Chance
 Chandra, Pyrogenius
 Chandra, Torch of Defiance
 Chandra's Defeat
-Chandra's Pyrohelix
 Chandra's Revolution
 Channeler Initiate
 Chaos Maw
@@ -182,7 +180,6 @@ Consuming Fervor
 Contraband Kingpin
 Conviction
 Cooperate
-Coral Merfolk
 Countervailing Winds
 Countless Gears Renegade
 Cowl Prowler
@@ -333,7 +330,6 @@ Fragmentize
 Fraying Sanity
 Freejam Regent
 Fretwork Colony
-Frilled Sandwalla
 Frontline Devastator
 Frontline Rebel
 Fumigate
@@ -351,7 +347,6 @@ Gideon, Martial Paragon
 Gideon's Defeat
 Gideon's Intervention
 Gideon's Resolve
-Gift of Strength
 Gifted Aetherborn
 Gilded Cerodon
 Glassblower's Puzzleknot
@@ -595,7 +590,6 @@ Ornithopter
 Outland Boar
 Ovalchase Daredevil
 Ovalchase Dragster
-Overcome
 Overwhelming Splendor
 Oviya Pashiri, Sage Lifecrafter
 Pacification Array
@@ -751,7 +745,6 @@ Skyship Stalker
 Skysovereign, Consul Flagship
 Skyswirl Harrier
 Skywhaler's Shot
-Sleep Paralysis
 Slither Blade
 Sly Requisitioner
 Smuggler's Copter
@@ -865,7 +858,6 @@ Universal Solvent
 Unlicensed Disintegration
 Unquenchable Thirst
 Unraveling Mummy
-Unsummon
 Untamed Hunger
 Untethered Express
 Unwavering Initiate

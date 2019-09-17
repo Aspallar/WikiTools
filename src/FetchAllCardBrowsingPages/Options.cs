@@ -6,7 +6,7 @@ namespace FetchAllCardBrowsingPages
     {
         private string _site;
 
-        [Option(Default = "http://magicarena.fandom.com/", HelpText = "Url to site.")]
+        [Option(Default = "https://magicarena.fandom.com/", HelpText = "Url to site.")]
         public string Site
         {
             get
