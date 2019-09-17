@@ -31,6 +31,7 @@ copy src\TourneyPairings\bin\Release\namemap.txt Deploy\.
 copy src\WamData\bin\Release\WamData.exe Deploy\.
 copy src\WamData\bin\Release\AngleSharp.dll Deploy\.
 copy src\CompRules\bin\Release\CompRules.exe Deploy\.
+copy src\DuplicateDecks\bin\Release\DuplicateDecks.exe Deploy\.
 goto :eof
 
 :wrongfolder
