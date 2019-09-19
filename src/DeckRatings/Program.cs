@@ -12,8 +12,7 @@ namespace DeckRatings
     {
         static void Main(string[] args)
         {
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            ServicePointManager.Expect100Continue = true;
+            Utils.InitialiseTls();
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(options => Run(options));
         }

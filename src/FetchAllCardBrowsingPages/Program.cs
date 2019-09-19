@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
 using WikiaClientLibrary;
+using WikiToolsShared;
 
 namespace FetchAllCardBrowsingPages
 {
@@ -20,8 +21,7 @@ namespace FetchAllCardBrowsingPages
             try
             {
 #endif
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                ServicePointManager.Expect100Continue = true;
+                Utils.InitialiseTls();
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(opts => { options = opts;  Run(); });
 #if !DEBUG

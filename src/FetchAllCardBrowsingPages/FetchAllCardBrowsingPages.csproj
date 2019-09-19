@@ -60,6 +60,10 @@
       <Project>{955dfa07-f730-4ab2-992d-3ca920df2a3a}</Project>
       <Name>WikiaClientLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="..\WikiToolsShared\WikiToolsShared.csproj">
+      <Project>{59d9fa86-9352-4e25-82c5-48d252228a5f}</Project>
+      <Name>WikiToolsShared</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

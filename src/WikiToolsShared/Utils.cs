@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -82,5 +83,11 @@ namespace WikiToolsShared
 
         public static int CombineHashCodes(int hashCode1, int hashCode2)
             => (((hashCode1 << 5) + hashCode1) ^ hashCode2);
+
+        public static void InitialiseTls()
+        {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            ServicePointManager.Expect100Continue = true;
+        }
     }
 }

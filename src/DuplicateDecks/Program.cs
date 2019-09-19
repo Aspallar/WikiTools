@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
+using WikiToolsShared;
 
 namespace DuplicateDecks
 {
@@ -15,8 +16,7 @@ namespace DuplicateDecks
 
         static void Main(string[] args)
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            Utils.InitialiseTls();
             Console.OutputEncoding = Encoding.UTF8;
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed((options) => Run(options));

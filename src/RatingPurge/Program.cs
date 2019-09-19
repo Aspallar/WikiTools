@@ -42,8 +42,7 @@ namespace RatingPurge
         {
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                Utils.InitialiseTls();
                 options.Validate();
                 if (options.Show)
                     ShowPurges(options);

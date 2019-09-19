@@ -35,8 +35,7 @@ namespace UploadFiles
             options.Validate();
             if (options.Site.ToLowerInvariant().StartsWith("https"))
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                ServicePointManager.Expect100Continue = true;
+                Utils.InitialiseTls();
             }
             OpeningMessage();
             Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor, options.Debug);

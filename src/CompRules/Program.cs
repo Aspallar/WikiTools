@@ -13,8 +13,7 @@ namespace CompRules
         {
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                Utils.InitialiseTls();
                 Console.OutputEncoding = Encoding.UTF8;
                 using (var client = new ExtendedWebClient())
                 {

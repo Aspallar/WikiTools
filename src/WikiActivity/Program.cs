@@ -2,12 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
-using WikiaClientLibrary;
 using WikiToolsShared;
 
 namespace WikiActivity
@@ -16,8 +12,7 @@ namespace WikiActivity
     {
         static void Main(string[] args)
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            Utils.InitialiseTls();
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(options => Run(options));
         }

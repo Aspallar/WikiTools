@@ -33,8 +33,7 @@ namespace WamData
 
         private static void Run(Options options)
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            Utils.InitialiseTls();
             SetUserAgent();
             try
             {
