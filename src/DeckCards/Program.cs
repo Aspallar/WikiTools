@@ -38,14 +38,9 @@ namespace DeckCards
         {
             options.Validate();
             if (options.Save)
-            {
                 options.SaveCredentials();
-                Console.WriteLine("Username and password saved.");
-            }
             else
-            {
                 GenerateMarkup(options);
-            }
         }
 
 
@@ -61,7 +56,6 @@ namespace DeckCards
                     return;
                 }
                 Dictionary<string, List<string>> cards = wiki.GetCardsInDecks(ReadIgnoredDecks(), ReadRemovedCards());
-                Console.Error.WriteLine(new string('=', 20));
                 string markup = Markup.GetMarkup(cards);
                 if (options.NoUpload)
                 {
@@ -70,11 +64,9 @@ namespace DeckCards
                 }
                 else
                 {
-                    Console.WriteLine("Uploading...");
                     try
                     {
                         Upload(options, markup, runTime);
-                        Console.WriteLine("Uploaded.");
                     }
                     catch (UploadException ex)
                     {

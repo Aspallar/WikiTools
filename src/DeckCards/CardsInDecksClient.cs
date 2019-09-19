@@ -30,7 +30,6 @@ namespace DeckCards
             var cards = new Dictionary<string, List<string>>();
             foreach (var deck in GetDecks(expandedIgnoredDecks, removedCards))
             {
-                Console.Error.WriteLine($"{deck.Title} {deck.Cards.Count}");
                 foreach (var card in deck.Cards)
                 {
                     if (_cardNames.TryGetValue(card, out string correctCase))
