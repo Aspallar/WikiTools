@@ -16,7 +16,7 @@ namespace DuplicateDecks
 
         static void Main(string[] args)
         {
-            Utils.InitialiseTls();
+            Utils.InitializeTls();
             Console.OutputEncoding = Encoding.UTF8;
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed((options) => Run(options));

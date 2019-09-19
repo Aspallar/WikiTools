@@ -13,7 +13,7 @@ namespace CompRules
         {
             try
             {
-                Utils.InitialiseTls();
+                Utils.InitializeTls();
                 Console.OutputEncoding = Encoding.UTF8;
                 using (var client = new ExtendedWebClient())
                 {

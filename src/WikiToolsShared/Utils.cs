@@ -84,7 +84,7 @@ namespace WikiToolsShared
         public static int CombineHashCodes(int hashCode1, int hashCode2)
             => (((hashCode1 << 5) + hashCode1) ^ hashCode2);
 
-        public static void InitialiseTls()
+        public static void InitializeTls()
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
             ServicePointManager.Expect100Continue = true;

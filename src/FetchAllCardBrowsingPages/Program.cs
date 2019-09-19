@@ -21,7 +21,7 @@ namespace FetchAllCardBrowsingPages
             try
             {
 #endif
-                Utils.InitialiseTls();
+                Utils.InitializeTls();
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(opts => { options = opts;  Run(); });
 #if !DEBUG

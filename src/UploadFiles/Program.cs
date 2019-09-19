@@ -35,7 +35,7 @@ namespace UploadFiles
             options.Validate();
             if (options.Site.ToLowerInvariant().StartsWith("https"))
             {
-                Utils.InitialiseTls();
+                Utils.InitializeTls();
             }
             OpeningMessage();
             Logging.Configure("UploadFiles.logging.xml", options.Log, !options.NoColor, options.Debug);

@@ -33,7 +33,7 @@ namespace WamData
 
         private static void Run(Options options)
         {
-            Utils.InitialiseTls();
+            Utils.InitializeTls();
             SetUserAgent();
             try
             {

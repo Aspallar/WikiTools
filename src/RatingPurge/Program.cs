@@ -42,7 +42,7 @@ namespace RatingPurge
         {
             try
             {
-                Utils.InitialiseTls();
+                Utils.InitializeTls();
                 options.Validate();
                 if (options.Show)
                     ShowPurges(options);

@@ -12,7 +12,7 @@ namespace WikiActivity
     {
         static void Main(string[] args)
         {
-            Utils.InitialiseTls();
+            Utils.InitializeTls();
             Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(options => Run(options));
         }

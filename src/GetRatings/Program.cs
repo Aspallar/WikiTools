@@ -14,7 +14,7 @@ namespace GetRatings
         {
             try
             {
-                Utils.InitialiseTls();
+                Utils.InitializeTls();
                 Parser.Default.ParseArguments<Options>(args)
                     .WithParsed(options => Run(options));
             }
