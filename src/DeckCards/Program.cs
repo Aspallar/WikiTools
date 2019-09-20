@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using WikiaClientLibrary;
 using WikiToolsShared;
@@ -65,7 +66,7 @@ namespace DeckCards
                 {
                     try
                     {
-                        Upload(options, markup, runTime);
+                        Upload(options, markup, runTime, cards.Count, CountDecks(cards));
                     }
                     catch (UploadException ex)
                     {
@@ -75,7 +76,18 @@ namespace DeckCards
             }
         }
 
-        private static void Upload(Options options, string markup, DateTime runTime)
+        private static int CountDecks(Dictionary<string, List<string>> cards)
+        {
+            var decks = new HashSet<string>();
+            foreach (var deckList in cards.Values)
+            {
+                foreach (var deck in deckList)
+                    decks.Add(deck);
+            }
+            return decks.Count;
+        }
+
+        private static void Upload(Options options, string markup, DateTime runTime, int cardCount, int deckCount)
         {
             const string updatedMarkerStart = "<!-- updated start -->";
             const string updatedMarkerEnd = "<!-- updated end -->";
@@ -105,7 +117,7 @@ namespace DeckCards
                 + target.Content.Substring(updatedEndPos, startPos - updatedEndPos)
                 + markup
                 + target.Content.Substring(endPos);
-            target.Save($"Updating via DeckCards {Utils.VersionString()}");
+            target.Save($"Updating via DeckCards {Utils.VersionString()}. {cardCount} cards, {deckCount} decks.");
         }
 
         private static Dictionary<string, string> ReadCardNames()
