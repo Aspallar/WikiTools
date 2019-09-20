@@ -32,6 +32,7 @@ copy src\WamData\bin\Release\WamData.exe Deploy\.
 copy src\WamData\bin\Release\AngleSharp.dll Deploy\.
 copy src\CompRules\bin\Release\CompRules.exe Deploy\.
 copy src\DuplicateDecks\bin\Release\DuplicateDecks.exe Deploy\.
+copy src\PageContents\bin\Release\PageContents.exe Deploy\.
 goto :eof
 
 :wrongfolder
