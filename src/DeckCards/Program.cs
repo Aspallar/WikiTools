@@ -113,7 +113,6 @@ namespace DeckCards
             string line;
             var cardNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             string filename = FullPath("cardnames.txt");
-            Console.Error.WriteLine($"Reading card names from {filename}");
             using (var sr = new StreamReader(filename))
             {
                 while ((line = sr.ReadConfigLine()) != null)
@@ -129,7 +128,6 @@ namespace DeckCards
             string filename = FullPath("removedcards.txt");
             if (File.Exists(filename))
             {
-                Console.Error.WriteLine($"Reading removed cards from {filename}");
                 using (var sr = new StreamReader(filename))
                 {
                     while ((line = sr.ReadConfigLine()) != null)
@@ -147,7 +145,6 @@ namespace DeckCards
             string filename = FullPath("ignoreddecks.txt");
             if (File.Exists(filename))
             {
-                Console.Error.WriteLine($"Reading ignored decks from {filename}");
                 using (var sr = new StreamReader(filename))
                 {
                     while ((line = sr.ReadConfigLine()) != null)

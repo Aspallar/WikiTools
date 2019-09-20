@@ -25,7 +25,6 @@ namespace DeckCards
 
         public Dictionary<string, List<string>> GetCardsInDecks(List<string> ignoredDecks, HashSet<string> removedCards)
         {
-            Console.Error.WriteLine("Fetching ignored categories.");
             HashSet<string> expandedIgnoredDecks = ExpandIgnoredDecks(ignoredDecks);
             var cards = new Dictionary<string, List<string>>();
             foreach (var deck in GetDecks(expandedIgnoredDecks, removedCards))
@@ -200,7 +199,7 @@ namespace DeckCards
             {
                 Console.Error.WriteLine(message);
                 foreach (XmlNode warning in warnings.ChildNodes)
-                    Console.WriteLine(warning.InnerText);
+                    Console.Error.WriteLine(warning.InnerText);
                 Environment.Exit(1);
             }
         }
@@ -209,7 +208,7 @@ namespace DeckCards
         {
             if (members.SelectSingleNode("/api/query-continue") != null)
             {
-                Console.WriteLine($"Category has too many members to use in ignored decks.");
+                Console.Error.WriteLine($"Category has too many members to use in ignored decks.");
                 Environment.Exit(1);
             }
         }
