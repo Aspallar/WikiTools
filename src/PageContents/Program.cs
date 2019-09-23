@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
 using WikiToolsShared;
 
 namespace PageContents
@@ -23,7 +20,7 @@ namespace PageContents
             using (var client = new WebClient())
             {
                 client.Encoding = Encoding.UTF8;
-                content = client.DownloadString($"https://magicarena.fandom.com/wiki/{args[0]}?action=raw");
+                content = client.DownloadString($"https://magicarena.fandom.com/wiki/{args[0]}?action=raw&cb={DateTime.Now.Ticks}");
             }
 
             Console.WriteLine(content);
