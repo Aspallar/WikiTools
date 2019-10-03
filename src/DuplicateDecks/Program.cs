@@ -2,9 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Xml;
 using WikiToolsShared;
 
@@ -25,6 +23,8 @@ namespace DuplicateDecks
         private static void Run(Options options)
         {
             List<Deck> decks = GetDecks().ToList();
+            if (options.Merged)
+                MergeSideboards(decks);
             IResultWriter rw = options.Html ? (IResultWriter)new HtmlResultWriter() : (IResultWriter)new PlainResultWriter();
             try
             {
@@ -36,6 +36,14 @@ namespace DuplicateDecks
             catch (DuplicateDecksException ex)
             {
                 Console.Error.WriteLine(ex.Message);
+            }
+        }
+
+        private static void MergeSideboards(List<Deck> decks)
+        {
+            foreach (var deck in decks)
+            {
+                deck.MergeSideboardIntoMain();
             }
         }
 

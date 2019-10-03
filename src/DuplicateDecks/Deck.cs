@@ -44,6 +44,30 @@ namespace DuplicateDecks
         //    return hash;
         //}
 
+        public void MergeSideboardIntoMain()
+        {
+            if (_sideboard.Count != 0)
+            {
+                bool needsSort = false;
+                foreach (var card in _sideboard)
+                {
+                    var mainCard = _main.Where(x => x.Name == card.Name).FirstOrDefault();
+                    if (mainCard == null)
+                    {
+                        _main.Add(card);
+                        needsSort = true;
+                    }
+                    else
+                    {
+                        mainCard.Amount += card.Amount;
+                    }
+                }
+                _sideboard.Clear();
+                if (needsSort)
+                    _main = Sort(_main);
+            }
+        }
+
         public bool HasSameMain(Deck other) => Same(_main, other._main);
 
         public bool HasSameSideboard(Deck other) => Same(_sideboard, other._sideboard);
@@ -92,9 +116,15 @@ namespace DuplicateDecks
                     }
                 }
             }
-            main = main.OrderBy(x => x.Name).ToList();
-            sideboard = sideboard.OrderBy(x => x.Name).ToList();
+            main = Sort(main);
+            sideboard = Sort(sideboard);
             return new Deck(title, main, sideboard);
         }
+
+        private static List<Card> Sort(List<Card> list)
+        {
+            return list.OrderBy(x => x.Name).ToList();
+        }
+
     }
 }
