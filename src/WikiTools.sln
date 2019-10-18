@@ -44,6 +44,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateDecks", "Duplicate
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PageContents", "PageContents\PageContents.csproj", "{05508E9B-B7A0-4ECE-9C0A-5601DD5B0947}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanRatings", "CleanRatings\CleanRatings.csproj", "{B269474B-7C14-44A5-9402-8E760BD64187}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +116,10 @@ Global
 		{05508E9B-B7A0-4ECE-9C0A-5601DD5B0947}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{05508E9B-B7A0-4ECE-9C0A-5601DD5B0947}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{05508E9B-B7A0-4ECE-9C0A-5601DD5B0947}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B269474B-7C14-44A5-9402-8E760BD64187}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B269474B-7C14-44A5-9402-8E760BD64187}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B269474B-7C14-44A5-9402-8E760BD64187}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B269474B-7C14-44A5-9402-8E760BD64187}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
