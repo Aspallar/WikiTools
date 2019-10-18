@@ -34,6 +34,9 @@
     <Reference Include="CommandLine, Version=2.5.0.0, Culture=neutral, PublicKeyToken=5a870481e358d379, processorArchitecture=MSIL">
       <HintPath>..\packages\CommandLineParser.2.5.0\lib\net461\CommandLine.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Security" />
@@ -50,14 +53,23 @@
     </Compile>
     <Compile Include="CredentialsOptions.cs" />
     <Compile Include="Encryption.cs" />
+    <Compile Include="MissingRatingsPageException.cs" />
     <Compile Include="OptionsException.cs" />
+    <Compile Include="RatingPage.cs" />
     <Compile Include="RatingsEntry.cs" />
     <Compile Include="SiteOptions.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="VoteTotal.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WikiaClientLibrary\WikiaClientLibrary.csproj">
+      <Project>{955dfa07-f730-4ab2-992d-3ca920df2a3a}</Project>
+      <Name>WikiaClientLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

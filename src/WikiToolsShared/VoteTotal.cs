@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace RatingPurge
+namespace WikiToolsShared
 {
     public class VoteTotal
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace RatingPurge
+namespace WikiToolsShared
 {
     [Serializable]
-    internal class MissingRatingsPageException : Exception
+    public class MissingRatingsPageException : Exception
     {
         public MissingRatingsPageException()
         {
