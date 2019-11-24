@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CommandLine;
+using System;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using WikiToolsShared;
@@ -9,20 +11,31 @@ namespace PageContents
     {
         static void Main(string[] args)
         {
-            Console.OutputEncoding = Encoding.UTF8;
-            if (args.Length != 1 || args[0] == "--help")
+            try
             {
-                ShowUsage();
-                return;
+                Utils.InitializeTls();
+                Console.OutputEncoding = Encoding.UTF8;
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed(options => Run(options));
             }
-            Utils.InitializeTls();
+            catch (WebException ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+            catch (Exception ex) when (!Debugger.IsAttached)
+            {
+                Console.Error.WriteLine(ex.ToString());
+            }
+        }
+
+        private static void Run(Options options)
+        {
             string content;
             using (var client = new WebClient())
             {
                 client.Encoding = Encoding.UTF8;
-                content = client.DownloadString($"https://magicarena.fandom.com/wiki/{args[0]}?action=raw&cb={DateTime.Now.Ticks}");
+                content = client.DownloadString($"{options.Site}/{options.WikiPath}/{options.Page}?action=raw&cb={DateTime.Now.Ticks}");
             }
-
             Console.WriteLine(content);
         }
 
