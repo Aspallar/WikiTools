@@ -248,6 +248,7 @@ Burglar Rat
 Burn Bright
 Burning Prophet
 Burning Sun's Avatar
+Burning-Tree Emissary
 Burning-Tree Vandal
 Burning-Yard Trainer
 Cabal Evangel
@@ -264,6 +265,7 @@ Cancel
 Candlelight Vigil
 Canopy Spider
 Captain Lannery Storm
+Captain Sisay
 Captain's Hook
 Captivating Crew
 Captivating Gyre
@@ -405,6 +407,7 @@ Crush Contraband
 Crush Dissent
 Crushing Canopy
 Cry of the Carnarium
+Cryptbreaker
 Cryptic Caves
 Crystal Slipper
 Cult Guildmage
@@ -428,6 +431,7 @@ Dark Nourishment
 Dark Remedy
 Darkblade Agent
 Dark-Dweller Oracle
+Darksteel Reactor
 Dauntless Bodyguard
 D'Avenant Trapper
 Davriel, Rogue Shadowmage
@@ -513,6 +517,7 @@ Disinformation Campaign
 Dismal Backwater
 Dismissive Pyromancer
 Disperse
+Distant Melody
 District Guide
 Dive Down
 Divest
@@ -590,6 +595,7 @@ Elite Headhunter
 Elvish Clancaller
 Elvish Reclaimer
 Elvish Rejuvenator
+Elvish Visionary
 Ember Hauler
 Embercleave
 Embereth Paladin
@@ -660,6 +666,7 @@ Fathom Fleet Boarder
 Fathom Fleet Captain
 Fathom Fleet Cutthroat
 Fathom Fleet Firebrand
+Fauna Shaman
 Favorable Winds
 Fblthp, the Lost
 Fearless Halberdier
@@ -672,6 +679,7 @@ Fencing Ace
 Feral Abomination
 Feral Invocation
 Feral Maaka
+Feral Roar
 Ferocious Pup
 Ferocity of the Wilds
 Fervent Champion
@@ -828,6 +836,7 @@ Goblin Electromancer
 Goblin Gathering
 Goblin Instigator
 Goblin Locksmith
+Goblin Matron
 Goblin Motivator
 Goblin Ringleader
 Goblin Smuggler
@@ -929,6 +938,7 @@ Herald of the Sun
 Heraldic Banner
 Hero of Precinct One
 Heroic Reinforcements
+Hidetsugu's Second Rite
 Hieromancer's Cage
 Hierophant's Chalice
 High Alert
@@ -962,6 +972,7 @@ Hunt the Weak
 Hunted Witness
 Hushbringer
 Hydroid Krasis
+Hypnotic Specter
 Hypnotic Sprite
 Hypothesizzle
 Icon of Ancestry
@@ -979,6 +990,7 @@ Imperial Ceratops
 Imperial Lancer
 Imperial Outrider
 Imperious Oligarch
+Imperious Perfect
 Impervious Greatwurm
 Improbable Alliance
 In Bolas's Clutches
@@ -1080,8 +1092,10 @@ Keldon Warcaller
 Kenrith, the Returned King
 Kenrith's Transformation
 Kethis, the Hidden Hand
+Kiln Fiend
 Kinjalli's Caller
 Kinjalli's Sunwing
+Kinsbaile Cavalier
 Kiora, Behemoth Beckoner
 Kiora's Dambreaker
 Kitesail Corsair
@@ -1255,6 +1269,7 @@ Mighty Leap
 Militia Bugler
 Millstone
 Mind Rot
+Mind Stone
 Ministrant of Obligation
 Mirror Image
 Mirror March
@@ -1375,6 +1390,7 @@ Orcish Vandal
 Order of Midnight
 Oreskos Swiftclaw
 Ornery Goblin
+Ornithopter
 Orzhov Enforcer
 Orzhov Guildgate
 Orzhov Locket
@@ -1414,6 +1430,7 @@ Persistent Petitioners
 Pestilent Spirit
 Phantom Warrior
 Phylactery Lich
+Phyrexian Arena
 Phyrexian Scriptures
 Pierce the Sky
 Pilfering Imp
@@ -1489,6 +1506,7 @@ Radical Idea
 Raff Capashen, Ship's Mage
 Rafter Demon
 Ragefire
+Raging Goblin
 Raging Kronch
 Raging Redcap
 Raging Regisaur
@@ -1592,6 +1610,7 @@ Ritual of Soot
 River Darter
 River Heralds' Boon
 River Sneak
+River's Favor
 River's Rebuke
 Riverwise Augur
 Rix Maadi Reveler
@@ -1646,6 +1665,7 @@ Salvager of Ruin
 Salvager of Secrets
 Samut, Tyrant Smasher
 Samut's Sprint
+Sanctuary Cat
 Sanctum Seeker
 Sanctum Spirit
 Sanguine Glorifier
@@ -1705,6 +1725,7 @@ Sephara, Sky's Blade
 Seraph of the Scales
 Sergeant-at-Arms
 Serra Angel
+Serra Ascendant
 Serra Disciple
 Serra's Guardian
 Settle the Score
@@ -1740,6 +1761,7 @@ Shore Keeper
 Short Sword
 Show of Valor
 Shriekdiver
+Shrine Keeper
 Siege Mastodon
 Siege Wurm
 Siegebreaker Giant
@@ -1828,6 +1850,7 @@ Sorin's Thirst
 Soul Diviner
 Soul of the Rapids
 Soul Salvage
+Soul Warden
 Soulmender
 Sovereign's Bite
 Spark Double
@@ -1980,6 +2003,7 @@ Temple of Triumph
 Temporal Machinations
 Tempting Witch
 Tendershoot Dryad
+Tendrils of Corruption
 Tenth District Guard
 Tenth District Legionnaire
 Tenth District Veteran
@@ -2087,7 +2111,9 @@ Trapjaw Tyrant
 Trapped in the Tower
 Traveler's Amulet
 Traxos, Scourge of Kroog
+Treasure Hunt
 Treasure Map
+Treetop Warden
 Triumph of Gerrard
 Trollbred Guardian
 Trostani Discordant
@@ -2295,6 +2321,7 @@ Zacama, Primal Calamity
 Zahid, Djinn of the Lamp
 Zegana, Utopian Speaker
 Zephyr Charge
+Zephyr Gull
 Zetalpa, Primal Dawn
 Zhalfirin Void
 Zhur-Taa Goblin
