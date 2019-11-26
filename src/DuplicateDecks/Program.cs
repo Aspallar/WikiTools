@@ -1,8 +1,11 @@
 ﻿using CommandLine;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using System.Xml;
 using WikiToolsShared;
 
@@ -12,39 +15,75 @@ namespace DuplicateDecks
     {
         const int _batchSize = 50;
 
+        [STAThread]
         static void Main(string[] args)
         {
             Utils.InitializeTls();
             Console.OutputEncoding = Encoding.UTF8;
-            Parser.Default.ParseArguments<Options>(args)
-                .WithParsed((options) => Run(options));
-        }
-
-        private static void Run(Options options)
-        {
-            List<Deck> decks = GetDecks().ToList();
-            if (options.Merged)
-                MergeSideboards(decks);
-            IResultWriter rw = options.Html ? (IResultWriter)new HtmlResultWriter() : (IResultWriter)new PlainResultWriter();
             try
             {
-                if (string.IsNullOrEmpty(options.Title))
-                    AllDecks(decks, !options.NoSideboard, rw);
-                else
-                    OneDeck(decks, options.Title, !options.NoSideboard, rw);
+                Parser.Default.ParseArguments<Options>(args)
+                    .WithParsed((options) => Run(options));
             }
             catch (DuplicateDecksException ex)
             {
                 Console.Error.WriteLine(ex.Message);
             }
+            catch (IOException ex) when (ex is FileNotFoundException || ex is DirectoryNotFoundException)
+            {
+                Console.Error.WriteLine(ex.Message);
+            }
+            catch (Exception ex) when (!Debugger.IsAttached)
+            {
+                Console.Error.WriteLine(ex.ToString());
+            }
+        }
+
+        private static void Run(Options options)
+        {
+            List<Deck> decks = GetAllDecks(options.Files, options.Clipboard);
+            if (options.Merged)
+                MergeSideboards(decks);
+            IResultWriter rw = options.Html ? (IResultWriter)new HtmlResultWriter() : (IResultWriter)new PlainResultWriter();
+            if (string.IsNullOrEmpty(options.Title))
+                AllDecks(decks, !options.NoSideboard, rw);
+            else
+                OneDeck(decks, options.Title, !options.NoSideboard, rw);
+        }
+
+        private static List<Deck> GetAllDecks(IEnumerable<string> fileNames, bool clipboard)
+        {
+            var localDecks = ReadLocalDecks(fileNames);
+            if (clipboard)
+            {
+                var text = Clipboard.GetText();
+                if (text == "")
+                    throw new DuplicateDecksException("The clipboard does not contain any text.");
+                localDecks.Add(Deck.ParseDeckExport("(Clipboard)", text));
+            }
+            var decks = GetDecks().ToList();
+            decks.AddRange(localDecks);
+            return decks;
+        }
+
+        private static List<Deck> ReadLocalDecks(IEnumerable<string> files)
+        {
+            var localDecks = new List<Deck>();
+            if (files != null)
+            {
+                foreach (var fileName in files)
+                {
+                    var contents = File.ReadAllText(fileName);
+                    localDecks.Add(Deck.ParseDeckExport("Local: " + fileName, contents));
+                }
+            }
+            return localDecks;
         }
 
         private static void MergeSideboards(List<Deck> decks)
         {
             foreach (var deck in decks)
-            {
                 deck.MergeSideboardIntoMain();
-            }
         }
 
         private static void AllDecks(List<Deck> decks, bool useSideboard, IResultWriter rw)
@@ -59,7 +98,7 @@ namespace DuplicateDecks
                 {
                     rw.Group(++count);
                     foreach (var deck in dups)
-                        rw.Item(deck.Title);
+                        rw.Item(deck);
                     decks = decks.Except(dups).ToList();
                 }
                 else
@@ -80,7 +119,7 @@ namespace DuplicateDecks
                 {
                     rw.Header();
                     foreach (var deck in dups)
-                        rw.Item(deck.Title);
+                        rw.Item(deck);
                     rw.Footer();
                 }
             }
@@ -121,7 +160,7 @@ namespace DuplicateDecks
                     TerminateOnErrorOrWarning(deckContents, "Error while obtaining deck contents.");
                     foreach (XmlNode deckPage in deckContents.SelectNodes("/api/query/pages/page"))
                     {
-                        Deck deck = Deck.Parse(deckPage.Attributes["title"].Value, CardText(deckPage.SelectSingleNode("revisions/rev").InnerText));
+                        Deck deck = Deck.ParseWikiDeck(deckPage.Attributes["title"].Value, CardText(deckPage.SelectSingleNode("revisions/rev").InnerText));
                         if (deck.HasCards)
                             yield return deck;
                     }

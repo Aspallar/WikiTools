@@ -5,6 +5,6 @@
         void Header();
         void Footer();
         void Group(int count);
-        void Item(string title);
+        void Item(Deck deck);
     }
 }

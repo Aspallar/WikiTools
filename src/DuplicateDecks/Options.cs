@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using System.Collections.Generic;
 
 namespace DuplicateDecks
 {
@@ -15,5 +16,11 @@ namespace DuplicateDecks
 
         [Option(HelpText = "Merge the sideboard into the main deck before comparing decks.")]
         public bool Merged { get; set; }
+
+        [Option(HelpText = "List of local deck list files to include in duplicate check.")]
+        public IEnumerable<string> Files { get; set; }
+
+        [Option(HelpText = "Also check deck in clipboard.")]
+        public bool Clipboard { get; set; }
     }
 }

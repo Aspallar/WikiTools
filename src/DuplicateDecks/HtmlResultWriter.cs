@@ -25,9 +25,12 @@ namespace DuplicateDecks
             Console.WriteLine("<body>");
         }
 
-        public void Item(string title)
+        public void Item(Deck deck)
         {
-            Console.WriteLine($"<a href=\"https://magicarena.fandom.com/wiki/{title}\" target=\"_blank\">{title}</a><br />");
+            if (deck.IsWikiDeck)
+                Console.WriteLine($"<a href=\"https://magicarena.fandom.com/wiki/{deck.Title}\" target=\"_blank\">{deck.Title}</a><br />");
+            else
+                Console.WriteLine($"{deck.Title}<br />");
         }
     }
 }

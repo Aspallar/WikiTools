@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace DuplicateDecks
 {
-    internal class Deck
+    internal sealed class Deck
     {
         private List<Card> _main;
         private List<Card> _sideboard;
@@ -15,34 +15,17 @@ namespace DuplicateDecks
 
         public IReadOnlyList<Card> Sideboard => _sideboard;
 
-        //[JsonIgnore]
-        //public int MainHash { get; private set; }
+        public bool IsWikiDeck { get; private set; }
 
-        //[JsonIgnore]
-        //public int SideboardHash { get; private set; }
-
-        public Deck(string title, List<Card> cards, List<Card> sideboard)
+        public Deck(string title, List<Card> cards, List<Card> sideboard, bool isWikiDeck)
         {
             Title = title;
             _main = cards;
             _sideboard = sideboard;
-            //MainHash = Hash(_main);
-            //SideboardHash = Hash(_sideboard);
+            IsWikiDeck = isWikiDeck;
         }
 
         public bool HasCards => _main.Count > 0 || _sideboard.Count > 0;
-
-        //private static int Hash(List<Card> list)
-        //{
-        //    int hash = 0;
-        //    if (list.Count > 0)
-        //    {
-        //        hash = list[0].GetHashCode();
-        //        for (int k = 1; k < list.Count; k++)
-        //            hash = Utils.CombineHashCodes(hash, list[k].GetHashCode());
-        //    }
-        //    return hash;
-        //}
 
         public void MergeSideboardIntoMain()
         {
@@ -86,7 +69,7 @@ namespace DuplicateDecks
 
         private static readonly Regex cardRegex = new Regex(@"(\d+)\s+([^\(/]+)");
 
-        public static Deck Parse(string title, string cardText)
+        public static Deck ParseWikiDeck(string title, string cardText)
         {
             char[] newline = { '\n' };
             var main = new List<Card>();
@@ -97,12 +80,43 @@ namespace DuplicateDecks
                 string trimmedCardLine = cardLine.Trim();
                 if (trimmedCardLine.Length > 0)
                 {
-                    if (trimmedCardLine.StartsWith("--"))
+                    if (!trimmedCardLine.StartsWith("--"))
+                    {
+                        Match match = cardRegex.Match(trimmedCardLine);
+                        if (match.Success)
+                        {
+                            int amount = int.Parse(match.Groups[1].Value);
+                            string name = match.Groups[2].Value.Trim().ToLowerInvariant();
+                            var card = active.FirstOrDefault(x => x.Name == name);
+                            if (card != null)
+                                card.Amount += amount;
+                            else
+                                active.Add(new Card { Amount = amount, Name = name });
+                        }
+                    }
+                    else
                     {
                         active = sideboard;
-                        continue;
                     }
+                }
+            }
+            main = Sort(main);
+            sideboard = Sort(sideboard);
+            return new Deck(title, main, sideboard, true);
+        }
 
+        public static Deck ParseDeckExport(string title, string cardText)
+        {
+            char[] newline = { '\n' };
+            var main = new List<Card>();
+            var sideboard = new List<Card>();
+            var active = main;
+
+            foreach (string cardLine in cardText.Trim().Split(newline))
+            {
+                string trimmedCardLine = cardLine.Trim();
+                if (trimmedCardLine.Length > 0)
+                {
                     Match match = cardRegex.Match(trimmedCardLine);
                     if (match.Success)
                     {
@@ -115,10 +129,14 @@ namespace DuplicateDecks
                             active.Add(new Card { Amount = amount, Name = name });
                     }
                 }
+                else
+                {
+                    active = sideboard;
+                }
             }
             main = Sort(main);
             sideboard = Sort(sideboard);
-            return new Deck(title, main, sideboard);
+            return new Deck(title, main, sideboard, false);
         }
 
         private static List<Card> Sort(List<Card> list)

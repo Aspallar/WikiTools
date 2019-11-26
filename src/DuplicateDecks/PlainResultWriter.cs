@@ -14,6 +14,6 @@ namespace DuplicateDecks
 
         public void Header() { }
 
-        public void Item(string title) => Console.WriteLine(title);
+        public void Item(Deck deck) => Console.WriteLine(deck.Title);
     }
 }
