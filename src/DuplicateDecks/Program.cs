@@ -71,13 +71,54 @@ namespace DuplicateDecks
             var localDecks = new List<Deck>();
             if (files != null)
             {
-                foreach (var fileName in files)
+                var wildCards = new char[] { '*', '?' };
+                foreach (var path in files)
                 {
-                    var contents = File.ReadAllText(fileName);
-                    localDecks.Add(Deck.ParseDeckExport("Local: " + fileName, contents));
+                    if (path.IndexOfAny(wildCards) == -1)
+                        AddLocalFile(localDecks, path);
+                    else
+                        ReadMatchingLocalDecks(localDecks, path);
                 }
             }
             return localDecks;
+        }
+
+        private static void ReadMatchingLocalDecks(List<Deck> localDecks, string path)
+        {
+            try
+            {
+                var folder = Path.GetDirectoryName(path);
+                if (folder == "")
+                    folder = Directory.GetCurrentDirectory();
+                var pattern = Path.GetFileName(path);
+                var filePaths = Directory.GetFiles(folder, pattern);
+                if (filePaths.Length == 0)
+                    throw new FileNotFoundException($"No files match {path}.");
+                foreach (var filePath in filePaths)
+                    AddLocalFile(localDecks, filePath);
+            }
+            catch (ArgumentException ex) when (ex.Message == "Illegal characters in path.")
+            {
+                throw new DuplicateDecksException($"Invalid characters in '{path}'");
+            }
+        }
+
+        private static void AddLocalFile(List<Deck> localDecks, string filePath)
+        {
+            string contents;
+            try
+            {
+                contents = File.ReadAllText(filePath);
+            }
+            catch (ArgumentException ex) when (ex.Message == "Illegal characters in path.")
+            {
+                throw new DuplicateDecksException($"Invalid characters in '{filePath}'");
+            }
+            catch (NotSupportedException)
+            {
+                throw new DuplicateDecksException($"'{filePath}' is an invalid filename in windows, some filenames are reserved for system use.");
+            }
+            localDecks.Add(Deck.ParseDeckExport("Local: " + filePath, contents));
         }
 
         private static void MergeSideboards(List<Deck> decks)
