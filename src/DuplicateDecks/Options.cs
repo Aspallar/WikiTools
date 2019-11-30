@@ -22,5 +22,8 @@ namespace DuplicateDecks
 
         [Option(HelpText = "Also check deck in clipboard.")]
         public bool Clipboard { get; set; }
+
+        [Option(HelpText = "Display additional information.")]
+        public bool Verbose { get; set; }
     }
 }

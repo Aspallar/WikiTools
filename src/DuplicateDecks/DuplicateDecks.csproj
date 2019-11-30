@@ -51,10 +51,13 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Card.cs" />
+    <Compile Include="ConsoleLog.cs" />
     <Compile Include="Deck.cs" />
     <Compile Include="DuplicateDecksException.cs" />
     <Compile Include="HtmlResultWriter.cs" />
+    <Compile Include="ILog.cs" />
     <Compile Include="IResultWriter.cs" />
+    <Compile Include="NullLog.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="PlainResultWriter.cs" />
     <Compile Include="Program.cs" />

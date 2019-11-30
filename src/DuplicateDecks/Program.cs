@@ -41,7 +41,8 @@ namespace DuplicateDecks
 
         private static void Run(Options options)
         {
-            List<Deck> decks = GetAllDecks(options.Files, options.Clipboard);
+            ILog verboseLog = options.Verbose ? (ILog)new ConsoleLog(options.Html) : (ILog)new NullLog();
+            List<Deck> decks = GetAllDecks(options.Files, options.Clipboard, verboseLog);
             if (options.Merged)
                 MergeSideboards(decks);
             IResultWriter rw = options.Html ? (IResultWriter)new HtmlResultWriter() : (IResultWriter)new PlainResultWriter();
@@ -51,14 +52,16 @@ namespace DuplicateDecks
                 OneDeck(decks, options.Title, !options.NoSideboard, rw);
         }
 
-        private static List<Deck> GetAllDecks(IEnumerable<string> fileNames, bool clipboard)
+        private static List<Deck> GetAllDecks(IEnumerable<string> fileNames, bool clipboard, ILog log)
         {
-            var localDecks = ReadLocalDecks(fileNames);
+            var localDecks = ReadLocalDecks(fileNames, log);
             if (clipboard)
             {
                 var text = Clipboard.GetText();
                 if (text == "")
                     throw new DuplicateDecksException("The clipboard does not contain any text.");
+                log.Log("Clipboard contents:");
+                log.Log(text);
                 localDecks.Add(Deck.ParseDeckExport("(Clipboard)", text));
             }
             var decks = GetDecks().ToList();
@@ -66,7 +69,7 @@ namespace DuplicateDecks
             return decks;
         }
 
-        private static List<Deck> ReadLocalDecks(IEnumerable<string> files)
+        private static List<Deck> ReadLocalDecks(IEnumerable<string> files, ILog log)
         {
             var localDecks = new List<Deck>();
             if (files != null)
@@ -75,15 +78,15 @@ namespace DuplicateDecks
                 foreach (var path in files)
                 {
                     if (path.IndexOfAny(wildCards) == -1)
-                        AddLocalFile(localDecks, path);
+                        AddLocalFile(localDecks, path, log);
                     else
-                        ReadMatchingLocalDecks(localDecks, path);
+                        ReadMatchingLocalDecks(localDecks, path, log);
                 }
             }
             return localDecks;
         }
 
-        private static void ReadMatchingLocalDecks(List<Deck> localDecks, string path)
+        private static void ReadMatchingLocalDecks(List<Deck> localDecks, string path, ILog log)
         {
             try
             {
@@ -95,7 +98,7 @@ namespace DuplicateDecks
                 if (filePaths.Length == 0)
                     throw new FileNotFoundException($"No files match {path}.");
                 foreach (var filePath in filePaths)
-                    AddLocalFile(localDecks, filePath);
+                    AddLocalFile(localDecks, filePath, log);
             }
             catch (ArgumentException ex) when (ex.Message == "Illegal characters in path.")
             {
@@ -103,9 +106,10 @@ namespace DuplicateDecks
             }
         }
 
-        private static void AddLocalFile(List<Deck> localDecks, string filePath)
+        private static void AddLocalFile(List<Deck> localDecks, string filePath, ILog log)
         {
             string contents;
+            log.Log($"Including File: {filePath}");
             try
             {
                 contents = File.ReadAllText(filePath);
