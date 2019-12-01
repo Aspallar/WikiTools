@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CleanRatings", "CleanRating
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CoalesceDeck", "CoalesceDeck\CoalesceDeck.csproj", "{F21CF182-9FEE-46A6-8C53-E3B38A19AC8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetJs", "GetJs\GetJs.csproj", "{658D414D-41B3-4FB2-85E5-3018DFCC1DDE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -126,6 +128,10 @@ Global
 		{F21CF182-9FEE-46A6-8C53-E3B38A19AC8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F21CF182-9FEE-46A6-8C53-E3B38A19AC8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F21CF182-9FEE-46A6-8C53-E3B38A19AC8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{658D414D-41B3-4FB2-85E5-3018DFCC1DDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{658D414D-41B3-4FB2-85E5-3018DFCC1DDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{658D414D-41B3-4FB2-85E5-3018DFCC1DDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{658D414D-41B3-4FB2-85E5-3018DFCC1DDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
