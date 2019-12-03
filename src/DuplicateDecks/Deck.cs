@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -75,29 +76,22 @@ namespace DuplicateDecks
             var main = new List<Card>();
             var sideboard = new List<Card>();
             var active = main;
-            foreach (string cardLine in cardText.Split(newline))
+
+            var cardLines = cardText.Split(newline, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim().ToLowerInvariant())
+                .Where(x => x.Length > 0);
+
+            foreach (string cardLine in cardLines)
             {
-                string trimmedCardLine = cardLine.Trim();
-                if (trimmedCardLine.Length > 0)
+                if (!cardLine.StartsWith("--"))
                 {
-                    if (!trimmedCardLine.StartsWith("--"))
-                    {
-                        Match match = cardRegex.Match(trimmedCardLine);
-                        if (match.Success)
-                        {
-                            int amount = int.Parse(match.Groups[1].Value);
-                            string name = match.Groups[2].Value.Trim().ToLowerInvariant();
-                            var card = active.FirstOrDefault(x => x.Name == name);
-                            if (card != null)
-                                card.Amount += amount;
-                            else
-                                active.Add(new Card { Amount = amount, Name = name });
-                        }
-                    }
-                    else
-                    {
-                        active = sideboard;
-                    }
+                    Match match = cardRegex.Match(cardLine);
+                    if (match.Success)
+                        AddCard(active, match);
+                }
+                else
+                {
+                    active = sideboard;
                 }
             }
             main = Sort(main);
@@ -112,22 +106,19 @@ namespace DuplicateDecks
             var sideboard = new List<Card>();
             var active = main;
 
-            foreach (string cardLine in cardText.Trim().Split(newline))
+            var cardLines = cardText.Trim().Split(newline).Select(x => x.Trim().ToLowerInvariant());
+            if (cardLines.Any(x => x == "commander" || x == "deck" || x == "sideboard"))
+                cardLines = cardLines.Where(x => x.Length > 0 && x != "commander" && x != "deck");
+
+            foreach (string cardLine in cardLines)
             {
-                string trimmedCardLine = cardLine.Trim();
-                if (trimmedCardLine.Length > 0)
+                if (cardLine.Length > 0)
                 {
-                    Match match = cardRegex.Match(trimmedCardLine);
+                    Match match = cardRegex.Match(cardLine);
                     if (match.Success)
-                    {
-                        int amount = int.Parse(match.Groups[1].Value);
-                        string name = match.Groups[2].Value.Trim().ToLowerInvariant();
-                        var card = active.FirstOrDefault(x => x.Name == name);
-                        if (card != null)
-                            card.Amount += amount;
-                        else
-                            active.Add(new Card { Amount = amount, Name = name });
-                    }
+                        AddCard(active, match);
+                    else if (cardLine == "sideboard")
+                        active = sideboard;
                 }
                 else
                 {
@@ -137,6 +128,17 @@ namespace DuplicateDecks
             main = Sort(main);
             sideboard = Sort(sideboard);
             return new Deck(title, main, sideboard, false);
+        }
+
+        private static void AddCard(List<Card> active, Match match)
+        {
+            int amount = int.Parse(match.Groups[1].Value);
+            string name = match.Groups[2].Value.Trim();
+            var card = active.FirstOrDefault(x => x.Name == name);
+            if (card != null)
+                card.Amount += amount;
+            else
+                active.Add(new Card { Amount = amount, Name = name });
         }
 
         private static List<Card> Sort(List<Card> list)
